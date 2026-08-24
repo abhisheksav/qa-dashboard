@@ -24,9 +24,8 @@ QA access is gated behind a login screen:
 
 The session persists across reloads; sign out from the sidebar footer (or the header on mobile).
 This is client-side demo gating only — the credentials live in the bundle, so anyone with the built
-files can read them. For real security, swap `src/store/useAuthStore.ts` for Supabase Auth
-(`supabase.auth.signInWithPassword`) behind the same `login`/`logout` interface; the route guard and
-UI need no changes.
+files can read them. For real security, swap `src/store/useAuthStore.ts` for a server-backed auth
+provider behind the same `login`/`logout` interface; the route guard and UI need no changes.
 
 ## Features
 
@@ -51,8 +50,7 @@ UI need no changes.
 ## Tech stack
 
 React 19 · TypeScript · Tailwind CSS v4 · shadcn/ui-style primitives (Radix) · React Router ·
-TanStack Table · React Hook Form · Zustand (persisted) · Recharts · SheetJS + PapaParse ·
-Supabase-ready persistence layer.
+TanStack Table · React Hook Form · Zustand (persisted) · Recharts · SheetJS + PapaParse.
 
 ## Architecture
 
@@ -62,7 +60,6 @@ src/
   data/seed.ts    Demo dataset — internally consistent (case status derives from latest run)
   services/
     persistence.ts    StateStorage driver abstraction (local now, remote later)
-    supabaseClient.ts Supabase client factory (env-gated)
   store/          Zustand stores: domain data (persisted) + theme
   lib/            stats selectors, import/export, utils
   components/
@@ -72,13 +69,11 @@ src/
     shared/       Status/priority/severity badges, KPI card, StartRunDialog
     cases/        Case form + assign-to-suites dialogs
   pages/          One file per route
-supabase/schema.sql   Ready-to-apply Postgres schema for the Supabase backend
 ```
 
-**Backend**: the app runs fully local by default. To attach Supabase, copy `.env.example` to
-`.env`, set `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`, and apply `supabase/schema.sql` to your
-project. All persistence flows through the `StateStorage` driver in `services/persistence.ts`, so a
-remote driver swaps in without touching stores or UI.
+**Backend**: the app is fully local — all data persists to browser localStorage. Persistence flows
+through the `StateStorage` driver in `services/persistence.ts`, so a remote driver can swap in
+without touching stores or UI if a backend is added later.
 
 **Future integrations**: Jira, TestRail, Zephyr, Playwright, GitHub Actions, Jenkins, BrowserStack,
 and Slack each have a config surface in **Settings → Integrations**; credentials are stored per

@@ -1,9 +1,8 @@
 import type { StateStorage } from 'zustand/middleware'
 
 // Persistence is abstracted behind zustand's StateStorage contract so the app
-// state can later be backed by Supabase (or any remote store) without touching
-// the stores or UI. Swap `createDriver()` to return a remote driver once
-// credentials are configured — see supabaseClient.ts.
+// state can later be backed by a remote store without touching the stores or
+// UI. Swap `createDriver()` to return a remote driver when one exists.
 
 export const localDriver: StateStorage = {
   getItem: (name) => localStorage.getItem(name),

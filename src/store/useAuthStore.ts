@@ -1,9 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-// Demo credential check for QA access. This is client-side gating only — for
-// real security, swap this store for Supabase Auth (supabase.auth.signInWithPassword)
-// behind the same login/logout interface.
+// Demo credential check for QA access. This is client-side gating only — the
+// credentials ship in the bundle. For real security, swap this store for a
+// server-backed auth provider behind the same login/logout interface.
 const VALID_EMAIL = 'abhishek@sav.money'
 const VALID_PASSWORD = 'Sav@12345'
 

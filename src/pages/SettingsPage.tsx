@@ -29,7 +29,6 @@ import {
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useDataStore } from '@/store/useDataStore'
-import { isSupabaseConfigured } from '@/services/supabaseClient'
 import { toast } from '@/components/ui/toaster'
 import type { AppSettings, IntegrationId } from '@/types'
 
@@ -340,13 +339,10 @@ export function SettingsPage() {
               <div className="flex items-start gap-3 rounded-lg border p-4">
                 <Database className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium">
-                    {isSupabaseConfigured() ? 'Supabase (connected)' : 'Local storage (this browser)'}
-                  </p>
+                  <p className="text-sm font-medium">Local storage (this browser)</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {isSupabaseConfigured()
-                      ? 'Data is synced to your Supabase project.'
-                      : 'All data persists in this browser. To enable the Supabase backend, set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (see .env.example) and apply supabase/schema.sql to your project.'}
+                    All data persists in this browser only. Clearing site data or switching
+                    browsers starts a fresh workspace — export from Test Cases to keep a copy.
                   </p>
                 </div>
               </div>
