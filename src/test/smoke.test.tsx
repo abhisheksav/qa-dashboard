@@ -14,24 +14,34 @@ afterEach(() => {
 })
 
 describe('route smoke tests', () => {
-  it('renders the dashboard with KPIs and recent runs', () => {
+  it('renders the sprint dashboard with KPIs and executions', () => {
     renderAt('/')
+    expect(screen.getByRole('heading', { name: 'QA Test Dashboard' })).toBeInTheDocument()
     expect(screen.getByText('Total Test Cases')).toBeInTheDocument()
-    expect(screen.getByText('Pass Rate')).toBeInTheDocument()
-    expect(screen.getByText('Recent Test Runs')).toBeInTheDocument()
+    expect(screen.getAllByText('In Progress').length).toBeGreaterThan(0)
+    expect(screen.getByText('Test Executions')).toBeInTheDocument()
     expect(screen.getAllByText(/RUN-\d+/).length).toBeGreaterThan(0)
   })
 
-  it('renders the manual vs automated breakdown and links into filtered cases', () => {
+  it('breaks cases down by derived test type', () => {
     renderAt('/')
-    expect(screen.getByText('Manual vs Automated')).toBeInTheDocument()
-    expect(screen.getByText('Manual test cases')).toBeInTheDocument()
-    expect(screen.getByText('Automated test cases')).toBeInTheDocument()
-    expect(screen.getByText(/11 automated · 21 pending automation · 34% coverage/)).toBeInTheDocument()
-    fireEvent.click(screen.getByText('Automated test cases'))
-    expect(screen.getByRole('heading', { name: 'Test Cases' })).toBeInTheDocument()
-    expect(screen.queryByText('TC-003')).not.toBeInTheDocument()
+    expect(screen.getByText('Test Cases by Type')).toBeInTheDocument()
+    // Types are derived from executionType + category, not stored.
+    expect(screen.getAllByText('Automated API').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Automated UI').length).toBeGreaterThan(0)
+  })
+
+  it('lists every sprint in the All Test Cases section and filters it', () => {
+    renderAt('/')
+    expect(screen.getByText('All Test Cases')).toBeInTheDocument()
+    expect(screen.getByText('TC-001')).toBeInTheDocument()
     expect(screen.getByText('TC-025')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Search test cases'), {
+      target: { value: 'TC-025' },
+    })
+    expect(screen.getByText('TC-025')).toBeInTheDocument()
+    expect(screen.queryByText('TC-001')).not.toBeInTheDocument()
   })
 
   it('shows why a manual case has not been automated in the Remark column', () => {

@@ -30,6 +30,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { KpiCard } from '@/components/shared/KpiCard'
+import { AutomationRunCard } from '@/components/shared/AutomationRunCard'
 import { PriorityBadge } from '@/components/shared/badges'
 import { chart, axisTick, RTooltip, ChartLegend } from '@/components/charts/chart-theme'
 import { useDataStore } from '@/store/useDataStore'
@@ -315,35 +316,38 @@ export function QaDashboardPage() {
 
       {/* -------------------------------------------------------------- KPIs */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
-        <KpiCard label="TOTAL TEST CASES" value={total} icon={ClipboardList} />
+        <KpiCard label="Total Test Cases" value={total} icon={ClipboardList} />
         <KpiCard
-          label="PASSED"
+          label="Passed"
           value={statusCounts.Passed}
           icon={CheckCircle2}
           iconClassName="text-status-good"
           sub={`${pct(statusCounts.Passed, total).toFixed(2)}%`}
         />
         <KpiCard
-          label="FAILED"
+          label="Failed"
           value={statusCounts.Failed}
           icon={XCircle}
           iconClassName="text-status-critical"
           sub={`${pct(statusCounts.Failed, total).toFixed(2)}%`}
         />
         <KpiCard
-          label="BLOCKED"
+          label="Blocked"
           value={statusCounts.Blocked}
           icon={CircleSlash}
           iconClassName="text-status-warning"
           sub={`${pct(statusCounts.Blocked, total).toFixed(2)}%`}
         />
         <KpiCard
-          label="IN PROGRESS"
+          label="In Progress"
           value={statusCounts['In Progress']}
           icon={Loader2}
           sub={`${pct(statusCounts['In Progress'], total).toFixed(2)}%`}
         />
       </div>
+
+      {/* ------------------------------------------------- api automation */}
+      <AutomationRunCard />
 
       {/* ------------------------------------------------------- breakdowns */}
       <div className="grid gap-4 lg:grid-cols-2">

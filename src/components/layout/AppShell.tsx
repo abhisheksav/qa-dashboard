@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { NavLink, Outlet, useLocation, useSearchParams } from 'react-router-dom'
 import {
   LayoutDashboard,
-  GaugeCircle,
   Layers,
   FileText,
   PlayCircle,
@@ -33,7 +32,6 @@ import { useAuthStore } from '@/store/useAuthStore'
 
 const nav = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/qa-dashboard', label: 'QA Test Dashboard', icon: GaugeCircle },
   { to: '/suites', label: 'Test Suites', icon: Layers },
   { to: '/cases', label: 'Test Cases', icon: FileText },
   { to: '/upload', label: 'Upload Cases', icon: Upload },

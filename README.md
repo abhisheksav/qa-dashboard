@@ -29,8 +29,13 @@ provider behind the same `login`/`logout` interface; the route guard and UI need
 
 ## Features
 
-- **Dashboard** — KPI tiles (total cases, Smoke/Regression size, passed/failed/blocked/not executed,
-  execution progress, pass rate), status distribution, recent runs, today's execution summary.
+- **Dashboard** — sprint-scoped QA overview: sprint selector (defaults to the current sprint), KPI
+  tiles (total / passed / failed / blocked / in progress), test-cases-by-type and execution-status
+  donuts, execution and pass-vs-fail trends, a per-run executions table, and an **All Test Cases**
+  section filterable across every sprint by sprint, type, status, priority and assignee.
+- **API Automation card** — latest run of the [qa-api-automation](https://github.com/Sav-Money/qa-api-automation)
+  suite (totals, pass rate, duration, link to the workflow run). Needs a server-side endpoint;
+  see [docs/api-automation.md](docs/api-automation.md).
 - **Test Suites** — create, rename, duplicate, delete, execute. A case can belong to many suites.
 - **Test Cases** — TanStack Table with search + module/priority/status/suite filters (URL-driven,
   shareable), bulk select → assign-to-suites / delete, full editor with dynamic steps,

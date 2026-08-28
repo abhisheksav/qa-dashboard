@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/toaster'
 import { AppShell } from '@/components/layout/AppShell'
-import { DashboardPage } from '@/pages/DashboardPage'
 import { QaDashboardPage } from '@/pages/QaDashboardPage'
 import { SuitesPage } from '@/pages/SuitesPage'
 import { TestCasesPage } from '@/pages/TestCasesPage'
@@ -40,8 +39,7 @@ export default function App() {
               </RequireAuth>
             }
           >
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/qa-dashboard" element={<QaDashboardPage />} />
+            <Route path="/" element={<QaDashboardPage />} />
             <Route path="/suites" element={<SuitesPage />} />
             <Route path="/cases" element={<TestCasesPage />} />
             <Route path="/upload" element={<UploadPage />} />
