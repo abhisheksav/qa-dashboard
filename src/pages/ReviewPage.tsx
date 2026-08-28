@@ -36,7 +36,6 @@ function when(iso?: string) {
   return iso ? format(new Date(iso), 'd MMM yyyy, HH:mm') : '—'
 }
 
-const ALL_SECTIONS = '__all_sections'
 const ALL_OWNERS = '__all_owners'
 const OPEN_TO_ANYONE = '__open_to_anyone'
 
@@ -47,21 +46,11 @@ export function ReviewPage() {
   const user = useAuthStore((s) => s.user)
   const reviewedBy = user?.name ?? currentTester
 
-  // Section is this app's subModule — the importer maps sheet columns named
-  // "section"/"subsection"/"screen" onto it, and uploads are organised by it.
-  const [section, setSection] = useState(ALL_SECTIONS)
   const [owner, setOwner] = useState(ALL_OWNERS)
   const [selected, setSelected] = useState<string[]>([])
   const [viewing, setViewing] = useState<TestCase | null>(null)
   const [rejecting, setRejecting] = useState<string[]>([])
   const [rejectComment, setRejectComment] = useState('')
-
-  // Every section present across the library, so the dropdown does not empty
-  // out as cases move between tabs.
-  const sections = useMemo(
-    () => [...new Set(testCases.map((c) => c.subModule).filter((x): x is string => !!x))].sort(),
-    [testCases],
-  )
 
   // Each module has its own Product Owner, so a case's approver follows from
   // its module rather than being stored on the case.
@@ -84,11 +73,6 @@ export function ReviewPage() {
     return { names: [...names].sort(), openToAnyone }
   }, [testCases, productOwners])
 
-  const inSection = useMemo(
-    () => (c: TestCase) => section === ALL_SECTIONS || c.subModule === section,
-    [section],
-  )
-
   const inOwner = useMemo(
     () => (c: TestCase) => {
       if (owner === ALL_OWNERS) return true
@@ -99,16 +83,16 @@ export function ReviewPage() {
   )
 
   const pending = useMemo(
-    () => testCases.filter((c) => c.reviewStatus === 'Pending' && inSection(c) && inOwner(c)),
-    [testCases, inSection, inOwner],
+    () => testCases.filter((c) => c.reviewStatus === 'Pending' && inOwner(c)),
+    [testCases, inOwner],
   )
   const approved = useMemo(
-    () => testCases.filter((c) => c.reviewStatus === 'Approved' && c.reviewedAt && inSection(c) && inOwner(c)),
-    [testCases, inSection, inOwner],
+    () => testCases.filter((c) => c.reviewStatus === 'Approved' && c.reviewedAt && inOwner(c)),
+    [testCases, inOwner],
   )
   const rejected = useMemo(
-    () => testCases.filter((c) => c.reviewStatus === 'Rejected' && inSection(c) && inOwner(c)),
-    [testCases, inSection, inOwner],
+    () => testCases.filter((c) => c.reviewStatus === 'Rejected' && inOwner(c)),
+    [testCases, inOwner],
   )
 
   // One folder per upload, named from the sheet's banner/file name; newest first.
@@ -172,27 +156,6 @@ export function ReviewPage() {
             <TabsTrigger value="rejected">Rejected ({rejected.length})</TabsTrigger>
           </TabsList>
 
-          {sections.length > 0 && (
-            <div className="flex items-center gap-2">
-              <Label htmlFor="section-filter" className="text-sm text-muted-foreground">
-                Section
-              </Label>
-              <Select value={section} onValueChange={setSection}>
-                <SelectTrigger id="section-filter" className="w-56">
-                  <SelectValue placeholder="All Sections" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL_SECTIONS}>All Sections</SelectItem>
-                  {sections.map((sec) => (
-                    <SelectItem key={sec} value={sec}>
-                      {sec}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
           {(owners.names.length > 0 || owners.openToAnyone) && (
             <div className="flex items-center gap-2">
               <Label htmlFor="owner-filter" className="text-sm text-muted-foreground">
@@ -215,15 +178,8 @@ export function ReviewPage() {
             </div>
           )}
 
-          {(section !== ALL_SECTIONS || owner !== ALL_OWNERS) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setSection(ALL_SECTIONS)
-                setOwner(ALL_OWNERS)
-              }}
-            >
+          {owner !== ALL_OWNERS && (
+            <Button variant="ghost" size="sm" onClick={() => setOwner(ALL_OWNERS)}>
               <X /> Clear
             </Button>
           )}
