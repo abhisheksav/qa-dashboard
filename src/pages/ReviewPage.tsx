@@ -30,6 +30,7 @@ import { useDataStore } from '@/store/useDataStore'
 import { useAuthStore } from '@/store/useAuthStore'
 import { toast } from '@/components/ui/toaster'
 import type { TestCase } from '@/types'
+import { stickyRightCell, stickyRightHead } from '@/lib/tableSticky'
 
 function when(iso?: string) {
   return iso ? format(new Date(iso), 'd MMM yyyy, HH:mm') : '—'
@@ -260,7 +261,8 @@ export function ReviewPage() {
                         <span className="text-sm font-semibold">{groupName}</span>
                         <Badge variant="muted">{cases.length}</Badge>
                         <span className="text-xs text-muted-foreground">
-                          by {cases[0].uploadedBy ?? '—'} · {when(cases[0].createdAt)}
+                          by {[...new Set(cases.map((c) => c.uploadedBy).filter(Boolean))].join(', ') || '—'}{' '}
+                          · {when(cases[0].createdAt)}
                         </span>
                         <span className="ml-auto flex gap-1">
                           <Button size="sm" variant="outline" onClick={() => approve(groupIds)}>
@@ -278,7 +280,7 @@ export function ReviewPage() {
                       </div>
                       <Table>
                         <TableHeader>
-                          <TableRow className="hover:bg-transparent">
+                          <TableRow className="hover:bg-transparent bg-card">
                             <TableHead className="w-8">
                               <Checkbox
                                 checked={allGroupSelected}
@@ -297,14 +299,12 @@ export function ReviewPage() {
                             <TableHead>Module</TableHead>
                             <TableHead>Product Owner</TableHead>
                             <TableHead>Priority</TableHead>
-                            <TableHead>Uploaded By</TableHead>
-                            <TableHead>Uploaded</TableHead>
-                            <TableHead className="w-40">Decision</TableHead>
+                            <TableHead className={`w-40 ${stickyRightHead()}`}>Decision</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {cases.map((c) => (
-                            <TableRow key={c.id}>
+                            <TableRow key={c.id} className="group/row bg-card hover:bg-muted">
                               <TableCell>
                                 <Checkbox
                                   checked={selected.includes(c.id)}
@@ -316,7 +316,7 @@ export function ReviewPage() {
                               </TableCell>
                               <TableCell className="font-medium whitespace-nowrap">{c.id}</TableCell>
                               <TableCell>
-                                <span className="block max-w-[22rem] truncate" title={c.title}>{c.title}</span>
+                                <span className="block max-w-[30rem] truncate" title={c.title}>{c.title}</span>
                               </TableCell>
                               <TableCell>
                                 <Badge variant="secondary">{c.module}</Badge>
@@ -330,9 +330,7 @@ export function ReviewPage() {
                                 )}
                               </TableCell>
                               <TableCell><PriorityBadge priority={c.priority} /></TableCell>
-                              <TableCell className="whitespace-nowrap">{c.uploadedBy ?? '—'}</TableCell>
-                              <TableCell className="whitespace-nowrap text-muted-foreground">{when(c.createdAt)}</TableCell>
-                              <TableCell>
+                              <TableCell className={stickyRightCell()}>
                                 <span className="flex gap-1">
                                   <Button
                                     variant="ghost"
@@ -380,7 +378,7 @@ export function ReviewPage() {
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent">
+                  <TableRow className="hover:bg-transparent bg-card">
                     <TableHead>ID</TableHead>
                     <TableHead>Title</TableHead>
                     <TableHead>Module</TableHead>
@@ -403,7 +401,7 @@ export function ReviewPage() {
                       <TableRow key={c.id}>
                         <TableCell className="font-medium whitespace-nowrap">{c.id}</TableCell>
                         <TableCell>
-                          <span className="block max-w-[22rem] truncate" title={c.title}>{c.title}</span>
+                          <span className="block max-w-[30rem] truncate" title={c.title}>{c.title}</span>
                         </TableCell>
                         <TableCell><Badge variant="secondary">{c.module}</Badge></TableCell>
                         <TableCell className="whitespace-nowrap text-muted-foreground">{c.uploadName ?? '—'}</TableCell>
@@ -435,7 +433,7 @@ export function ReviewPage() {
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent">
+                  <TableRow className="hover:bg-transparent bg-card">
                     <TableHead>ID</TableHead>
                     <TableHead>Title</TableHead>
                     <TableHead>Module</TableHead>

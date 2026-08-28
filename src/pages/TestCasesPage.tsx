@@ -61,6 +61,12 @@ import { exportCasesToExcel, parseImportFile, downloadImportTemplate, type Impor
 import { toast } from '@/components/ui/toaster'
 import { MoreHorizontal } from 'lucide-react'
 import type { TestCase } from '@/types'
+import {
+  stickyLeftCell,
+  stickyLeftHead,
+  stickyRightCell,
+  stickyRightHead,
+} from '@/lib/tableSticky'
 import { CASE_STATUSES, EXECUTION_TYPES, LIFECYCLE_STATUSES, PRIORITIES } from '@/types'
 
 const columnHelper = createColumnHelper<TestCase>()
@@ -71,13 +77,14 @@ const ALL = '__all__'
 // to tell which case they belong to. Widths are fixed so the ID column's `left`
 // offset matches the checkbox column exactly.
 const STICKY_HEAD: Record<string, string> = {
-  select: 'sticky left-0 z-30 w-11 min-w-11 max-w-11 bg-card',
-  id: 'sticky left-11 z-30 bg-card shadow-[1px_0_0_0_var(--border)]',
+  select: `${stickyLeftHead('left-0')} w-11 min-w-11 max-w-11`,
+  id: stickyLeftHead('left-11', true),
+  actions: stickyRightHead(),
 }
 const STICKY_CELL: Record<string, string> = {
-  select:
-    'sticky left-0 z-10 w-11 min-w-11 max-w-11 bg-card group-hover/row:bg-muted/50 group-data-[state=selected]/row:bg-accent',
-  id: 'sticky left-11 z-10 bg-card group-hover/row:bg-muted/50 group-data-[state=selected]/row:bg-accent shadow-[1px_0_0_0_var(--border)]',
+  select: `${stickyLeftCell('left-0')} w-11 min-w-11 max-w-11`,
+  id: stickyLeftCell('left-11', true),
+  actions: stickyRightCell(),
 }
 
 export function TestCasesPage() {
@@ -621,7 +628,7 @@ export function TestCasesPage() {
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() ? 'selected' : undefined}
-                    className="cursor-pointer group/row bg-card"
+                    className="cursor-pointer group/row bg-card hover:bg-muted"
                     onClick={() => {
                       setEditing(row.original)
                       setFormOpen(true)

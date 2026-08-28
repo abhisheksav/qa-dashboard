@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { stickyRightCell, stickyRightHead } from '@/lib/tableSticky'
 import { SeverityBadge, BugStatusBadge, PriorityBadge } from '@/components/shared/badges'
 import { useDataStore } from '@/store/useDataStore'
 import { formatDate } from '@/lib/utils'
@@ -211,7 +212,7 @@ export function BugsPage() {
                 <TableHead>Linked Case</TableHead>
                 <TableHead>Assigned To</TableHead>
                 <TableHead className="text-right">Created</TableHead>
-                <TableHead></TableHead>
+                <TableHead className={stickyRightHead()}></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -223,7 +224,11 @@ export function BugsPage() {
                 </TableRow>
               ) : (
                 filtered.map((bug) => (
-                  <TableRow key={bug.id} className="cursor-pointer" onClick={() => openEdit(bug)}>
+                  <TableRow
+                    key={bug.id}
+                    className="cursor-pointer group/row bg-card hover:bg-muted"
+                    onClick={() => openEdit(bug)}
+                  >
                     <TableCell className="font-medium whitespace-nowrap">
                       <span className="inline-flex items-center gap-1.5">
                         <BugIcon className="h-3.5 w-3.5 text-status-critical" />
@@ -255,7 +260,7 @@ export function BugsPage() {
                     <TableCell className="text-right whitespace-nowrap text-muted-foreground">
                       {formatDate(bug.createdAt)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={stickyRightCell()}>
                       <Button
                         variant="ghost"
                         size="icon"
