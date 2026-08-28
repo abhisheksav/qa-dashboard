@@ -27,16 +27,23 @@ function Stat({ label, value, color }: { label: string; value: number | string; 
   )
 }
 
-export function AutomationRunCard() {
-  const [state, setState] = useState<Loaded<AutomationSummary>>({ status: 'loading' })
+/**
+ * Pass `state` when the parent already has the summary — the dashboard shows
+ * this card and the suite totals beside the type breakdown, and sharing one
+ * fetch avoids downloading the report artifact twice.
+ */
+export function AutomationRunCard({ state: provided }: { state?: Loaded<AutomationSummary> }) {
+  const [fetched, setFetched] = useState<Loaded<AutomationSummary>>({ status: 'loading' })
+  const state = provided ?? fetched
 
   useEffect(() => {
+    if (provided) return
     const controller = new AbortController()
     void fetchLatestAutomationRun({ signal: controller.signal }).then((next) => {
-      if (!controller.signal.aborted) setState(next)
+      if (!controller.signal.aborted) setFetched(next)
     })
     return () => controller.abort()
-  }, [])
+  }, [provided])
 
   return (
     <Card>

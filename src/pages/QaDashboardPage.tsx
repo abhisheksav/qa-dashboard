@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import {
   ResponsiveContainer,
@@ -31,6 +31,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { KpiCard } from '@/components/shared/KpiCard'
 import { AutomationRunCard } from '@/components/shared/AutomationRunCard'
+import {
+  fetchLatestAutomationRun,
+  type AutomationSummary,
+  type Loaded,
+} from '@/services/apiAutomation'
 import { PriorityBadge } from '@/components/shared/badges'
 import { chart, axisTick, RTooltip, ChartLegend } from '@/components/charts/chart-theme'
 import { useDataStore } from '@/store/useDataStore'
@@ -98,6 +103,7 @@ function BreakdownCard({
   colors,
   centerValue,
   centerLabel,
+  footer,
 }: {
   title: string
   description?: string
@@ -105,6 +111,7 @@ function BreakdownCard({
   colors: Record<string, string>
   centerValue?: string
   centerLabel?: string
+  footer?: ReactNode
 }) {
   const total = data.reduce((sum, d) => sum + d.value, 0)
   const shown = data.filter((d) => d.value > 0)
@@ -190,8 +197,52 @@ function BreakdownCard({
             </Table>
           </div>
         </div>
+        {footer}
       </CardContent>
     </Card>
+  )
+}
+
+/**
+ * The type donut counts this app's case library only. The API automation suite
+ * is a separate population — its tests are not test cases here — so its totals
+ * are shown as an explicitly labelled band rather than folded into the chart,
+ * which would silently mix two different things.
+ */
+function SuiteTotals({ state }: { state: Loaded<AutomationSummary> }) {
+  if (state.status !== 'ready') return null
+  const d = state.data
+  return (
+    <div className="mt-5 pt-4 border-t border-dashed">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+          API automation suite — not counted above
+        </span>
+        <Link to="/api-automation" className="text-xs text-primary hover:underline ml-auto">
+          View report
+        </Link>
+      </div>
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 mt-2 text-sm">
+        <span className="font-semibold tabular-nums">{d.total} tests</span>
+        <span className="tabular-nums text-status-good">{d.passed} passed</span>
+        <span className="tabular-nums text-status-critical">
+          {d.failed + d.broken} failed
+        </span>
+        <span className="tabular-nums text-muted-foreground">{d.skipped} skipped</span>
+      </div>
+      <p className="text-xs text-muted-foreground mt-2">
+        These run in{' '}
+        <a
+          href="https://github.com/Sav-Money/qa-api-automation"
+          target="_blank"
+          rel="noreferrer"
+          className="text-primary hover:underline"
+        >
+          qa-api-automation
+        </a>{' '}
+        and are not test cases in this library, so they do not appear in the chart.
+      </p>
+    </div>
   )
 }
 
@@ -201,6 +252,17 @@ export function QaDashboardPage() {
   const settings = useDataStore((s) => s.settings)
 
   const live = useMemo(() => activeCases(cases), [cases])
+
+  // Fetched here rather than in each consumer: the summary card and the suite
+  // totals below the type chart both need it, and the report artifact is large.
+  const [automation, setAutomation] = useState<Loaded<AutomationSummary>>({ status: 'loading' })
+  useEffect(() => {
+    const controller = new AbortController()
+    void fetchLatestAutomationRun({ signal: controller.signal }).then((next) => {
+      if (!controller.signal.aborted) setAutomation(next)
+    })
+    return () => controller.abort()
+  }, [])
   const sprints = settings.sprints
   const [sprint, setSprint] = useState(() => currentSprint(settings))
   const isCurrent = sprint === currentSprint(settings)
@@ -347,15 +409,16 @@ export function QaDashboardPage() {
       </div>
 
       {/* ------------------------------------------------- api automation */}
-      <AutomationRunCard />
+      <AutomationRunCard state={automation} />
 
       {/* ------------------------------------------------------- breakdowns */}
       <div className="grid gap-4 lg:grid-cols-2">
         <BreakdownCard
           title="Test Cases by Type"
-          description="Derived from execution type and category."
+          description="Cases in this library, by execution type and category."
           data={TEST_TYPES.map((t) => ({ name: t, value: typeCounts[t] }))}
           colors={typeColor}
+          footer={<SuiteTotals state={automation} />}
         />
         <BreakdownCard
           title="Test Case Execution Status"
