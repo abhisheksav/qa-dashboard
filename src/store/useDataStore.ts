@@ -87,6 +87,9 @@ interface DataState {
   updateSettings: (patch: Partial<AppSettings>) => void
   updateIntegration: (id: IntegrationId, patch: Partial<Omit<IntegrationConfig, 'id'>>) => void
   resetToSeed: () => void
+  /** Empties test cases, runs and bugs. Suites and settings survive,
+   *  since those are configuration rather than recorded work. */
+  clearWorkspace: () => void
 }
 
 // Sprint names follow the SV1 Jira board. Kept beside the migration that
@@ -399,6 +402,13 @@ export const useDataStore = create<DataState>()(
         set((s) => ({
           integrations: s.integrations.map((i) => (i.id === id ? { ...i, ...patch } : i)),
         })),
+
+      clearWorkspace: () =>
+        set({
+          testCases: [],
+          runs: [],
+          bugs: [],
+        }),
 
       resetToSeed: () =>
         set({

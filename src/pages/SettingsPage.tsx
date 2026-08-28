@@ -4,6 +4,7 @@ import {
   Plus,
   X,
   RotateCcw,
+  Trash2,
   Database,
   Plug,
   User,
@@ -170,8 +171,13 @@ function ListEditor({
 
 export function SettingsPage() {
   const navigate = useNavigate()
-  const { settings, updateSettings, integrations, updateIntegration, resetToSeed } = useDataStore()
+  const { settings, updateSettings, integrations, updateIntegration, resetToSeed, clearWorkspace } =
+    useDataStore()
+  const caseCount = useDataStore((s) => s.testCases.length)
+  const runCount = useDataStore((s) => s.runs.length)
+  const bugCount = useDataStore((s) => s.bugs.length)
   const [resetOpen, setResetOpen] = useState(false)
+  const [clearOpen, setClearOpen] = useState(false)
   const [configuring, setConfiguring] = useState<IntegrationId | null>(null)
   const [draftSettings, setDraftSettings] = useState<Record<string, string>>({})
 
@@ -401,6 +407,20 @@ export function SettingsPage() {
                 </div>
               </div>
               <div className="flex items-start gap-3 rounded-lg border border-destructive/40 p-4">
+                <Trash2 className="h-5 w-5 text-destructive mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Clear all test data</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Permanently deletes every test case, test run and bug, leaving an empty
+                    workspace. Suites and settings are kept. Export from Test Cases first if you
+                    might want any of it back.
+                  </p>
+                </div>
+                <Button variant="destructive" size="sm" onClick={() => setClearOpen(true)}>
+                  Clear
+                </Button>
+              </div>
+              <div className="flex items-start gap-3 rounded-lg border border-destructive/40 p-4">
                 <RotateCcw className="h-5 w-5 text-destructive mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">Reset workspace</p>
@@ -456,6 +476,36 @@ export function SettingsPage() {
               }}
             >
               Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clear confirm — counts are shown so the scale of the delete is explicit */}
+      <Dialog open={clearOpen} onOpenChange={setClearOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete all test data?</DialogTitle>
+            <DialogDescription>
+              This permanently deletes {caseCount} test case{caseCount === 1 ? '' : 's'},{' '}
+              {runCount} test run{runCount === 1 ? '' : 's'} and {bugCount} bug
+              {bugCount === 1 ? '' : 's'}, including anything awaiting review. Suites and settings
+              are kept. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setClearOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                clearWorkspace()
+                setClearOpen(false)
+                toast.success('Workspace cleared', 'All test cases, runs and bugs deleted.')
+              }}
+            >
+              <Trash2 /> Delete Everything
             </Button>
           </DialogFooter>
         </DialogContent>
