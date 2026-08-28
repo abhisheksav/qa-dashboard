@@ -132,11 +132,25 @@
     height: 10px;
   }
   ::-webkit-scrollbar-thumb {
-    background: var(--border);
+    background: var(--chart-axis);
     border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--status-neutral);
+    background-clip: content-box;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  /* Firefox has no ::-webkit pseudo-elements; this is its equivalent. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--chart-axis) transparent;
   }
 }
 

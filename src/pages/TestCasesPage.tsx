@@ -66,6 +66,20 @@ import { CASE_STATUSES, EXECUTION_TYPES, LIFECYCLE_STATUSES, PRIORITIES } from '
 const columnHelper = createColumnHelper<TestCase>()
 const ALL = '__all__'
 
+// The table is wider than the viewport, so the checkbox and ID columns pin to
+// the left — without them a horizontally scrolled row shows values with no way
+// to tell which case they belong to. Widths are fixed so the ID column's `left`
+// offset matches the checkbox column exactly.
+const STICKY_HEAD: Record<string, string> = {
+  select: 'sticky left-0 z-30 w-11 min-w-11 max-w-11 bg-card',
+  id: 'sticky left-11 z-30 bg-card shadow-[1px_0_0_0_var(--border)]',
+}
+const STICKY_CELL: Record<string, string> = {
+  select:
+    'sticky left-0 z-10 w-11 min-w-11 max-w-11 bg-card group-hover/row:bg-muted/50 group-data-[state=selected]/row:bg-accent',
+  id: 'sticky left-11 z-10 bg-card group-hover/row:bg-muted/50 group-data-[state=selected]/row:bg-accent shadow-[1px_0_0_0_var(--border)]',
+}
+
 export function TestCasesPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { testCases, suites, integrations, deleteCases } = useDataStore()
@@ -466,7 +480,7 @@ export function TestCasesPage() {
             />
           </div>
           <Select value={moduleFilter} onValueChange={(v) => setParam('module', v)}>
-            <SelectTrigger className="w-36"><SelectValue placeholder="Module" /></SelectTrigger>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Module" /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>All Modules</SelectItem>
               {modules.map((m) => (
@@ -475,7 +489,7 @@ export function TestCasesPage() {
             </SelectContent>
           </Select>
           <Select value={priorityFilter} onValueChange={(v) => setParam('priority', v)}>
-            <SelectTrigger className="w-32"><SelectValue placeholder="Priority" /></SelectTrigger>
+            <SelectTrigger className="w-36"><SelectValue placeholder="Priority" /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>All Priorities</SelectItem>
               {PRIORITIES.map((p) => (
@@ -484,7 +498,7 @@ export function TestCasesPage() {
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={(v) => setParam('status', v)}>
-            <SelectTrigger className="w-36"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger className="w-40"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>All Statuses</SelectItem>
               {CASE_STATUSES.map((s) => (
@@ -493,7 +507,7 @@ export function TestCasesPage() {
             </SelectContent>
           </Select>
           <Select value={executionFilter} onValueChange={(v) => setParam('execution', v)}>
-            <SelectTrigger className="w-36"><SelectValue placeholder="Execution" /></SelectTrigger>
+            <SelectTrigger className="w-48"><SelectValue placeholder="Execution" /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>Manual & Automated</SelectItem>
               {EXECUTION_TYPES.map((t) => (
@@ -502,7 +516,7 @@ export function TestCasesPage() {
             </SelectContent>
           </Select>
           <Select value={suiteFilter} onValueChange={(v) => setParam('suite', v)}>
-            <SelectTrigger className="w-36"><SelectValue placeholder="Suite" /></SelectTrigger>
+            <SelectTrigger className="w-40"><SelectValue placeholder="Suite" /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>All Suites</SelectItem>
               {suites.map((s) => (
@@ -511,7 +525,7 @@ export function TestCasesPage() {
             </SelectContent>
           </Select>
           <Select value={categoryFilter} onValueChange={(v) => setParam('category', v)}>
-            <SelectTrigger className="w-36"><SelectValue placeholder="Category" /></SelectTrigger>
+            <SelectTrigger className="w-40"><SelectValue placeholder="Category" /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>All Categories</SelectItem>
               {categories.map((c) => (
@@ -520,7 +534,7 @@ export function TestCasesPage() {
             </SelectContent>
           </Select>
           <Select value={lifecycleFilter} onValueChange={(v) => setParam('lifecycle', v)}>
-            <SelectTrigger className="w-36"><SelectValue placeholder="Lifecycle" /></SelectTrigger>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Lifecycle" /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>Active + Inactive</SelectItem>
               {LIFECYCLE_STATUSES.map((s) => (
@@ -530,7 +544,7 @@ export function TestCasesPage() {
           </Select>
           {stories.length > 0 && (
             <Select value={storyFilter} onValueChange={(v) => setParam('story', v)}>
-              <SelectTrigger className="w-36"><SelectValue placeholder="Story" /></SelectTrigger>
+              <SelectTrigger className="w-40"><SelectValue placeholder="Story" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>All Stories</SelectItem>
                 {stories.map((s) => (
@@ -566,13 +580,17 @@ export function TestCasesPage() {
           </div>
         )}
 
-        <div className="mt-3 rounded-md border">
+        <div className="mt-3 rounded-md border overflow-hidden">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((hg) => (
-                <TableRow key={hg.id} className="hover:bg-transparent">
+                <TableRow key={hg.id} className="hover:bg-transparent bg-card">
                   {hg.headers.map((header) => (
-                    <TableHead key={header.id} style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}>
+                    <TableHead
+                      key={header.id}
+                      className={STICKY_HEAD[header.column.id]}
+                      style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
+                    >
                       {header.isPlaceholder ? null : header.column.getCanSort() ? (
                         <button
                           className="inline-flex items-center gap-1 hover:text-foreground cursor-pointer"
@@ -603,14 +621,14 @@ export function TestCasesPage() {
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() ? 'selected' : undefined}
-                    className="cursor-pointer"
+                    className="cursor-pointer group/row bg-card"
                     onClick={() => {
                       setEditing(row.original)
                       setFormOpen(true)
                     }}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={cell.id} className={STICKY_CELL[cell.column.id]}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
