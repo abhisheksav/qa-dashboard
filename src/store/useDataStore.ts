@@ -89,6 +89,10 @@ interface DataState {
   resetToSeed: () => void
 }
 
+// Sprint names follow the SV1 Jira board. Kept beside the migration that
+// introduces them so the two cannot drift apart.
+const SPRINT_LIST = ['Sprint 108', 'Sprint 109', 'Sprint 110', 'Sprint 111', 'Sprint 112', 'Sprint 113', 'Sprint 114', 'Sprint 115']
+
 const now = () => new Date().toISOString()
 
 export const useDataStore = create<DataState>()(
@@ -401,7 +405,7 @@ export const useDataStore = create<DataState>()(
     {
       name: 'qa-dashboard-data',
       storage: createJSONStorage(() => createDriver()),
-      version: 7,
+      version: 8,
       migrate: (persisted, version) => {
         const state = persisted as DataState
         if (version < 2 && state.settings) {
@@ -472,6 +476,41 @@ export const useDataStore = create<DataState>()(
           }))
           if (state.settings && !state.settings.categories) {
             state.settings = { ...state.settings, categories: ['API', 'Backend', 'Device'] }
+          }
+        }
+        if (version < 8 && state.settings) {
+          // Sprint naming moved to the SV1 Jira board (Sprint 108+). Only
+          // rewrite a workspace still on the untouched demo pair, so anyone who
+          // curated their own sprint list keeps it.
+          const LEGACY = ['Sprint 23', 'Sprint 24']
+          const current = state.settings.sprints ?? []
+          const untouched =
+            current.length === LEGACY.length && current.every((sp, i) => sp === LEGACY[i])
+
+          if (untouched) {
+            const rename: Record<string, string> = {
+              'Sprint 23': 'Sprint 109',
+              'Sprint 24': 'Sprint 110',
+            }
+            const fix = (sp: string) => rename[sp] ?? sp
+
+            state.settings = {
+              ...state.settings,
+              sprints: SPRINT_LIST,
+              activeSprint: 'Sprint 110',
+            }
+            state.testCases = state.testCases?.map((c) => ({ ...c, sprint: fix(c.sprint) }))
+            state.runs = state.runs?.map((r) => ({ ...r, sprint: fix(r.sprint) }))
+            // The demo suite is named after the sprint it covers.
+            state.suites = state.suites?.map((su) =>
+              su.name === 'Sprint 24 Testing'
+                ? {
+                    ...su,
+                    name: 'Sprint 110 Testing',
+                    description: 'Stories and fixes delivered in Sprint 110.',
+                  }
+                : su,
+            )
           }
         }
         if (version < 7 && state.settings) {

@@ -358,7 +358,7 @@ export const seedSettings: AppSettings = {
   testers: ['Abhishek', 'Vishal'],
   builds: ['2.4.0', '2.4.1', '2.5.0-rc1', '2.5.0'],
   environments: ['QA', 'Staging', 'UAT', 'Production'],
-  sprints: ['Sprint 108', 'Sprint 109', 'Sprint 110', 'Sprint 111', 'Sprint 112'],
+  sprints: ['Sprint 108', 'Sprint 109', 'Sprint 110', 'Sprint 111', 'Sprint 112', 'Sprint 113', 'Sprint 114', 'Sprint 115'],
   activeSprint: 'Sprint 110',
   modules: [...SAV_MODULES],
   categories: ['API', 'Backend', 'Device'],
