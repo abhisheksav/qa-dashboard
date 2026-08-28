@@ -4,6 +4,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/toaster'
 import { AppShell } from '@/components/layout/AppShell'
 import { QaDashboardPage } from '@/pages/QaDashboardPage'
+import { ApiAutomationPage } from '@/pages/ApiAutomationPage'
 import { SuitesPage } from '@/pages/SuitesPage'
 import { TestCasesPage } from '@/pages/TestCasesPage'
 import { UploadPage } from '@/pages/UploadPage'
@@ -47,6 +48,7 @@ export default function App() {
             <Route path="/runs" element={<RunsPage />} />
             <Route path="/runs/:runId" element={<RunDetailPage />} />
             <Route path="/execute/:runId" element={<ExecutionPage />} />
+            <Route path="/api-automation" element={<ApiAutomationPage />} />
             <Route path="/bugs" element={<BugsPage />} />
             <Route
               path="/reports"

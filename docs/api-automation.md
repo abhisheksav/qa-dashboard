@@ -1,8 +1,9 @@
 # API automation integration
 
-The dashboard shows the latest run of the API automation suite
-([Sav-Money/qa-api-automation](https://github.com/Sav-Money/qa-api-automation)) in the
-**API Automation — Latest Run** card.
+The **API Automation** section (`/api-automation`) shows the latest run of the API automation
+suite ([Sav-Money/qa-api-automation](https://github.com/Sav-Money/qa-api-automation)): totals,
+the failing tests with their errors, recent workflow runs, and a control to trigger a new run.
+A condensed summary card also sits on the dashboard.
 
 ## Why there is a server-side endpoint
 
@@ -70,15 +71,48 @@ The response contract:
 ```
 
 Return `501` with `{ "error": "not-configured", "message": "…" }` when no credential is available;
-the card then renders a neutral "not configured" state rather than an error.
+the UI then renders a neutral "not configured" state rather than an error.
+
+### `GET /api/automation/runs`
+
+Last 10 runs of `api-regression.yml`, for the history table.
+
+```jsonc
+{ "runs": [ { "id": 33145777954, "runNumber": 103, "name": "API Automation Regression",
+              "event": "schedule", "branch": "main", "status": "completed",
+              "conclusion": "failure", "startedAt": "…", "updatedAt": "…",
+              "url": "https://github.com/…", "actor": "Vishal-savMoney" } ] }
+```
+
+### `POST /api/automation/dispatch`
+
+Triggers the workflow on `main`. Body: `{ "target": "smoke" }`, where target is one of
+`smoke`, `recurring-buys-gold`, `sav-gold`, `auth`, `onboarding`, `regression`, `all` —
+matching the workflow's own `workflow_dispatch` choice input.
+
+Responds `202 { "ok": true, "target": "smoke" }`. GitHub queues the run asynchronously, so it does
+not appear in `/runs` immediately; the UI re-polls after a few seconds. Unknown targets are
+rejected with `400` before any GitHub call is made.
+
+**This needs a token with `workflow` scope**, unlike the read-only routes. Running the suite hits
+the staging environment and posts to the QA Slack channel, so the UI asks for confirmation before
+dispatching rather than firing on a single click.
 
 A simpler alternative worth considering: add a step to the suite's own workflow that publishes this
 JSON somewhere the dashboard can read directly, which removes the need for a token-bearing proxy
 entirely.
 
+## Failure detail
+
+Per-test failures come from `test-results/results.json` (Playwright's own JSON reporter) inside the
+same artifact — Allure's `summary.json` widget carries only counts. When that file is absent the
+API sets `failureDetailUnavailable: true`, so an empty `failures` list means "unknown" rather than
+"none failed".
+
 ## Known gap: results are not linked to test cases
 
-The card shows **totals only**. Per-case linking does not work yet.
+The section lists the failing tests with their ids, error text and retry counts, but those results
+are **not linked to test cases in this app**.
 
 The app's Playwright importer ([`src/lib/playwrightImport.ts`](../src/lib/playwrightImport.ts))
 matches results back to test cases by a `TC-###` tag in the test title. The real suite uses a

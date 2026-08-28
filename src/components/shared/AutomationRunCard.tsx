@@ -1,22 +1,26 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, ArrowUpRight, GitBranch, Info, Loader2, RefreshCw } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { AlertTriangle, ArrowRight, GitBranch, Info, Loader2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { chart } from '@/components/charts/chart-theme'
 import {
   fetchLatestAutomationRun,
   formatDuration,
-  type AutomationState,
+  type AutomationSummary,
+  type Loaded,
 } from '@/services/apiAutomation'
 
-// Latest run of the API automation suite, read through the server-side
-// endpoint (see services/apiAutomation.ts for why it can't be read directly).
+// Compact summary of the API automation suite's latest run. The full section —
+// failed tests and manual triggering — lives at /api-automation.
 
 function Stat({ label, value, color }: { label: string; value: number | string; color?: string }) {
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</span>
-      <span className="text-xl font-semibold tabular-nums leading-none" style={color ? { color } : undefined}>
+      <span
+        className="text-xl font-semibold tabular-nums leading-none"
+        style={color ? { color } : undefined}
+      >
         {value}
       </span>
     </div>
@@ -24,17 +28,15 @@ function Stat({ label, value, color }: { label: string; value: number | string; 
 }
 
 export function AutomationRunCard() {
-  const [state, setState] = useState<AutomationState>({ status: 'loading' })
-  const [reloadKey, setReloadKey] = useState(0)
+  const [state, setState] = useState<Loaded<AutomationSummary>>({ status: 'loading' })
 
   useEffect(() => {
     const controller = new AbortController()
-    setState({ status: 'loading' })
-    void fetchLatestAutomationRun(controller.signal).then((next) => {
+    void fetchLatestAutomationRun({ signal: controller.signal }).then((next) => {
       if (!controller.signal.aborted) setState(next)
     })
     return () => controller.abort()
-  }, [reloadKey])
+  }, [])
 
   return (
     <Card>
@@ -43,20 +45,16 @@ export function AutomationRunCard() {
           <CardTitle className="text-base">API Automation — Latest Run</CardTitle>
           <CardDescription>
             {state.status === 'ready'
-              ? `${state.data.repo} · ${state.data.workflowName}`
+              ? `${state.data.repo} · run #${state.data.runNumber}`
               : 'Sav-Money/qa-api-automation'}
           </CardDescription>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 shrink-0"
-          onClick={() => setReloadKey((k) => k + 1)}
-          disabled={state.status === 'loading'}
-          aria-label="Refresh automation run"
+        <Link
+          to="/api-automation"
+          className="inline-flex items-center gap-1 text-sm text-primary hover:underline shrink-0"
         >
-          <RefreshCw className={state.status === 'loading' ? 'animate-spin' : undefined} />
-        </Button>
+          Details <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
       </CardHeader>
 
       <CardContent>
@@ -79,7 +77,7 @@ export function AutomationRunCard() {
             <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-status-critical" />
             <div>
               <p className="font-medium text-status-critical">Could not load the latest run</p>
-              <p className="text-muted-foreground mt-0.5">{state.message}</p>
+              <p className="text-muted-foreground mt-0.5 break-words">{state.message}</p>
             </div>
           </div>
         )}
@@ -89,12 +87,16 @@ export function AutomationRunCard() {
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
               <Stat label="Total" value={state.data.total} />
               <Stat label="Passed" value={state.data.passed} color={chart.good} />
-              <Stat label="Failed" value={state.data.failed} color={chart.critical} />
+              <Stat
+                label="Failed"
+                value={state.data.failed + state.data.broken}
+                color={chart.critical}
+              />
               <Stat label="Skipped" value={state.data.skipped} color={chart.neutral} />
               <Stat label="Pass rate" value={`${state.data.passRate.toFixed(1)}%`} />
             </div>
 
-            {/* Proportional bar — skipped tests are shown but excluded from pass rate. */}
+            {/* Proportional bar — skipped shown but excluded from pass rate. */}
             <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
               {(
                 [
@@ -105,7 +107,10 @@ export function AutomationRunCard() {
               ).map(([key, value, color]) => (
                 <span
                   key={key}
-                  style={{ width: `${(value / Math.max(state.data.total, 1)) * 100}%`, background: color }}
+                  style={{
+                    width: `${(value / Math.max(state.data.total, 1)) * 100}%`,
+                    background: color,
+                  }}
                 />
               ))}
             </div>
@@ -125,23 +130,12 @@ export function AutomationRunCard() {
                   minute: '2-digit',
                 })}
               </span>
-              {state.data.conclusion && (
-                <span
-                  className={
-                    state.data.conclusion === 'success' ? 'text-status-good' : 'text-status-critical'
-                  }
-                >
-                  workflow {state.data.conclusion}
-                </span>
+              {state.data.failures.length > 0 && (
+                <Link to="/api-automation" className="text-status-critical hover:underline">
+                  {state.data.failures.length} failing test
+                  {state.data.failures.length === 1 ? '' : 's'}
+                </Link>
               )}
-              <a
-                href={state.data.runUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="ml-auto inline-flex items-center gap-1 text-primary hover:underline"
-              >
-                Run #{state.data.runNumber} <ArrowUpRight className="h-3.5 w-3.5" />
-              </a>
             </div>
           </div>
         )}

@@ -1,11 +1,34 @@
-// Client for the latest run of the API automation suite
-// (Sav-Money/qa-api-automation).
+// Client for the API automation suite (Sav-Money/qa-api-automation).
 //
-// The report is a GitHub Actions artifact on an INTERNAL repo, so reading it
-// needs a credential that must never reach the browser. This talks to a
-// server-side endpoint instead, which holds the token and returns only the
-// numbers. In dev that endpoint is the Vite plugin in vite/apiAutomation.ts;
-// a deployed build needs the same route served by a real backend.
+// The report is a GitHub Actions artifact on an INTERNAL repo and dispatching a
+// run needs `workflow` scope, so both need a credential the browser must never
+// hold. This talks to server-side routes that keep the token and return only
+// results. In dev those routes come from vite/apiAutomation.ts; a deployed
+// build needs the same contract from a real backend (docs/api-automation.md).
+
+export const DISPATCH_TARGETS = [
+  'smoke',
+  'recurring-buys-gold',
+  'sav-gold',
+  'auth',
+  'onboarding',
+  'regression',
+  'all',
+] as const
+
+export type DispatchTarget = (typeof DISPATCH_TARGETS)[number]
+
+export interface FailedTest {
+  /** Leading id token in the test title, e.g. "KYC-GATE-001". */
+  id: string | null
+  title: string
+  file: string
+  suite: string
+  status: string
+  attempts: number
+  durationSec: number
+  error: string
+}
 
 export interface AutomationSummary {
   repo: string
@@ -27,18 +50,34 @@ export interface AutomationSummary {
   skipped: number
   unknown: number
   passRate: number
+  failures: FailedTest[]
+  failureDetailUnavailable: boolean
 }
 
-export type AutomationState =
+export interface RunRow {
+  id: number
+  runNumber: number
+  name: string
+  event: string
+  branch: string
+  status: string
+  conclusion: string | null
+  startedAt: string
+  updatedAt: string
+  url: string
+  actor: string
+}
+
+export type Loaded<T> =
   | { status: 'loading' }
-  /** No token configured — the feature is off rather than broken. */
+  /** No credential configured — the feature is off rather than broken. */
   | { status: 'not-configured'; message: string }
   | { status: 'error'; message: string }
-  | { status: 'ready'; data: AutomationSummary }
+  | { status: 'ready'; data: T }
 
-export async function fetchLatestAutomationRun(signal?: AbortSignal): Promise<AutomationState> {
+async function request<T>(path: string, init?: RequestInit): Promise<Loaded<T>> {
   try {
-    const res = await fetch('/api/automation/latest', { signal })
+    const res = await fetch(`/api/automation${path}`, init)
 
     if (res.status === 501) {
       const body = (await res.json()) as { message?: string }
@@ -49,23 +88,41 @@ export async function fetchLatestAutomationRun(signal?: AbortSignal): Promise<Au
     }
 
     if (!res.ok) {
-      // A static build has no such route, so the dev server's JSON is absent
-      // and we get the SPA's index.html back instead of an error payload.
-      const body = await res.text()
+      // A static build has no such route, so instead of an error payload the
+      // SPA's index.html comes back — detect that and say so plainly.
+      const text = await res.text()
       let message = `Request failed (${res.status}).`
       try {
-        message = (JSON.parse(body) as { message?: string }).message ?? message
+        message = (JSON.parse(text) as { message?: string }).message ?? message
       } catch {
         message = 'No automation endpoint is available in this build.'
       }
       return { status: 'error', message }
     }
 
-    return { status: 'ready', data: (await res.json()) as AutomationSummary }
+    return { status: 'ready', data: (await res.json()) as T }
   } catch (e: unknown) {
     if (e instanceof DOMException && e.name === 'AbortError') return { status: 'loading' }
     return { status: 'error', message: e instanceof Error ? e.message : String(e) }
   }
+}
+
+export function fetchLatestAutomationRun(opts?: { signal?: AbortSignal; refresh?: boolean }) {
+  return request<AutomationSummary>(`/latest${opts?.refresh ? '?refresh=1' : ''}`, {
+    signal: opts?.signal,
+  })
+}
+
+export function fetchAutomationRuns(signal?: AbortSignal) {
+  return request<{ runs: RunRow[] }>('/runs', { signal })
+}
+
+export function dispatchAutomationRun(target: DispatchTarget) {
+  return request<{ ok: boolean; target: string }>('/dispatch', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ target }),
+  })
 }
 
 export function formatDuration(ms: number): string {

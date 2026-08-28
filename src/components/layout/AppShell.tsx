@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { NavLink, Outlet, useLocation, useSearchParams } from 'react-router-dom'
 import {
   LayoutDashboard,
+  Bot,
   Layers,
   FileText,
   PlayCircle,
@@ -37,6 +38,7 @@ const nav = [
   { to: '/upload', label: 'Upload Cases', icon: Upload },
   { to: '/review', label: 'Review & Approval', icon: ClipboardCheck },
   { to: '/runs', label: 'Test Runs', icon: PlayCircle },
+  { to: '/api-automation', label: 'API Automation', icon: Bot },
   { to: '/bugs', label: 'Bug Tracker', icon: Bug },
   { to: '/reports', label: 'Reports', icon: BarChart3 },
   { to: '/settings', label: 'Settings', icon: Settings },

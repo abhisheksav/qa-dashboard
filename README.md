@@ -33,8 +33,10 @@ provider behind the same `login`/`logout` interface; the route guard and UI need
   tiles (total / passed / failed / blocked / in progress), test-cases-by-type and execution-status
   donuts, execution and pass-vs-fail trends, a per-run executions table, and an **All Test Cases**
   section filterable across every sprint by sprint, type, status, priority and assignee.
-- **API Automation card** — latest run of the [qa-api-automation](https://github.com/Sav-Money/qa-api-automation)
-  suite (totals, pass rate, duration, link to the workflow run). Needs a server-side endpoint;
+- **API Automation** — latest run of the [qa-api-automation](https://github.com/Sav-Money/qa-api-automation)
+  suite: totals and pass rate, the failing tests with their captured errors and retry counts, recent
+  workflow runs, and a **Run tests** control that dispatches any of the suites (smoke, regression,
+  sav-gold, …). A condensed summary also sits on the dashboard. Needs a server-side endpoint —
   see [docs/api-automation.md](docs/api-automation.md).
 - **Test Suites** — create, rename, duplicate, delete, execute. A case can belong to many suites.
 - **Test Cases** — TanStack Table with search + module/priority/status/suite filters (URL-driven,
