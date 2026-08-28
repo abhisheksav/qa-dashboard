@@ -22,14 +22,14 @@ export function AdHocRunDialog({ caseIds, onOpenChange }: AdHocRunDialogProps) {
   const [tester, setTester] = useState(settings.currentTester)
   const [build, setBuild] = useState(settings.defaultBuild)
   const [environment, setEnvironment] = useState(settings.defaultEnvironment)
-  const [sprint, setSprint] = useState(settings.sprints[settings.sprints.length - 1] ?? '')
+  const [sprint, setSprint] = useState(settings.activeSprint || settings.sprints[settings.sprints.length - 1] || '')
 
   useEffect(() => {
     if (open) {
       setTester(settings.currentTester)
       setBuild(settings.defaultBuild)
       setEnvironment(settings.defaultEnvironment)
-      setSprint(settings.sprints[settings.sprints.length - 1] ?? '')
+      setSprint(settings.activeSprint || settings.sprints[settings.sprints.length - 1] || '')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])

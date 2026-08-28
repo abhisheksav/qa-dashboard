@@ -51,9 +51,17 @@ export function sprintScope(cases: TestCase[], runs: TestRun[], sprint: string):
   return cases.filter((c) => c.sprint === sprint || executed.has(c.id))
 }
 
-/** Last entry of the configured sprint list — the one the dashboard opens on. */
+/**
+ * The sprint the dashboard opens on. Reads the explicitly configured active
+ * sprint (Settings -> Data), falling back to the last in the list only when
+ * none is set — the board lists future sprints after the active one, so the
+ * last entry is usually the wrong answer.
+ */
 export function currentSprint(settings: AppSettings): string {
-  return settings.sprints[settings.sprints.length - 1] ?? ''
+  if (settings.activeSprint && settings.sprints.includes(settings.activeSprint)) {
+    return settings.activeSprint
+  }
+  return settings.activeSprint || settings.sprints[settings.sprints.length - 1] || ''
 }
 
 export interface ExecutionRecord {

@@ -401,7 +401,7 @@ export const useDataStore = create<DataState>()(
     {
       name: 'qa-dashboard-data',
       storage: createJSONStorage(() => createDriver()),
-      version: 6,
+      version: 7,
       migrate: (persisted, version) => {
         const state = persisted as DataState
         if (version < 2 && state.settings) {
@@ -472,6 +472,17 @@ export const useDataStore = create<DataState>()(
           }))
           if (state.settings && !state.settings.categories) {
             state.settings = { ...state.settings, categories: ['API', 'Backend', 'Device'] }
+          }
+        }
+        if (version < 7 && state.settings) {
+          // activeSprint is new. It used to be inferred as the last entry of
+          // `sprints`, so seed that as the starting value — it preserves the
+          // behaviour an existing workspace already had, and the user can
+          // change it in Settings once future sprints are added to the list.
+          const sprints = state.settings.sprints ?? []
+          state.settings = {
+            ...state.settings,
+            activeSprint: state.settings.activeSprint || sprints[sprints.length - 1] || '',
           }
         }
         return state

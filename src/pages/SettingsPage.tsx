@@ -262,6 +262,29 @@ export function SettingsPage() {
               <ListEditor title="Environments" items={settings.environments} {...listActions('environments')} />
               <Separator />
               <ListEditor title="Sprints" items={settings.sprints} {...listActions('sprints')} />
+              <div className="grid gap-2 max-w-sm">
+                <Label htmlFor="active-sprint">Active sprint</Label>
+                <Select
+                  value={settings.activeSprint || undefined}
+                  onValueChange={(v) => updateSettings({ activeSprint: v })}
+                >
+                  <SelectTrigger id="active-sprint">
+                    <SelectValue placeholder="Select the sprint in progress" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {settings.sprints.map((sp) => (
+                      <SelectItem key={sp} value={sp}>
+                        {sp}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  The sprint currently in flight. The dashboard opens on it and new test cases and
+                  runs default to it. Set it explicitly because the list holds future sprints too,
+                  so the last entry is not the active one.
+                </p>
+              </div>
               <Separator />
               <ListEditor title="Modules" items={settings.modules} {...listActions('modules')} />
               <Separator />

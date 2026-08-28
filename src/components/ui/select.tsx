@@ -14,7 +14,10 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      'flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-card px-3 py-2 text-sm shadow-sm placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 cursor-pointer',
+      // The value span needs min-w-0 to shrink: flex items default to
+      // min-width:auto, so without it a long option (e.g. a module name) grows
+      // past the trigger and shoves the chevron over the next field.
+      'flex h-9 w-full items-center justify-between gap-2 overflow-hidden whitespace-nowrap rounded-md border border-input bg-card px-3 py-2 text-sm shadow-sm placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:min-w-0 [&>span]:truncate [&>span]:text-left cursor-pointer',
       className,
     )}
     {...props}

@@ -143,7 +143,7 @@ export const seedTestCases: TestCase[] = caseDefs.map((def, i) => ({
   comments: '',
   bugIds: [],
   suiteIds: [],
-  sprint: i < 24 ? 'Sprint 23' : 'Sprint 24',
+  sprint: i < 24 ? 'Sprint 109' : 'Sprint 110',
   reviewStatus: 'Approved',
   createdAt: daysAgo(30 - Math.floor(i / 3)),
   updatedAt: daysAgo(30 - Math.floor(i / 3)),
@@ -164,7 +164,7 @@ export const seedSuites: TestSuite[] = [
   { id: 'SUITE-004', name: 'API', description: 'Contract and behavior checks for the public REST API.', owner: 'Abhishek', status: 'Active', createdAt: daysAgo(38) },
   { id: 'SUITE-005', name: 'Mobile', description: 'Native app flows on Android and iOS devices.', owner: 'Vishal', status: 'Active', createdAt: daysAgo(35) },
   { id: 'SUITE-006', name: 'Web', description: 'Browser-based storefront coverage.', owner: 'Vishal', status: 'Active', createdAt: daysAgo(35) },
-  { id: 'SUITE-008', name: 'Sprint 24 Testing', description: 'Stories and fixes delivered in Sprint 24.', owner: 'Abhishek', status: 'Draft', createdAt: daysAgo(12) },
+  { id: 'SUITE-008', name: 'Sprint 110 Testing', description: 'Stories and fixes delivered in Sprint 110.', owner: 'Abhishek', status: 'Draft', createdAt: daysAgo(12) },
 ]
 
 for (const [suiteId, nums] of Object.entries(suiteMembership)) {
@@ -192,31 +192,31 @@ interface RunDef {
 
 const runDefs: RunDef[] = [
   {
-    id: 'RUN-001', suiteId: 'SUITE-001', tester: 'Abhishek', build: '2.4.0', environment: 'QA', sprint: 'Sprint 23', day: 13, hour: 10, durationMin: 55,
+    id: 'RUN-001', suiteId: 'SUITE-001', tester: 'Abhishek', build: '2.4.0', environment: 'QA', sprint: 'Sprint 109', day: 13, hour: 10, durationMin: 55,
     outcomes: { 1: ['Passed'], 6: ['Passed'], 10: ['Passed'], 13: ['Passed'], 17: ['Passed'], 25: ['Passed'], 26: ['Failed', 'BUG-001'], 34: ['Passed'] },
   },
   {
-    id: 'RUN-002', suiteId: 'SUITE-002', tester: 'Vishal', build: '2.4.0', environment: 'QA', sprint: 'Sprint 23', day: 11, hour: 9, durationMin: 340,
+    id: 'RUN-002', suiteId: 'SUITE-002', tester: 'Vishal', build: '2.4.0', environment: 'QA', sprint: 'Sprint 109', day: 11, hour: 9, durationMin: 340,
     outcomes: { 1: ['Passed'], 2: ['Passed'], 3: ['Passed'], 4: ['Failed', 'BUG-002'], 5: ['Passed'], 6: ['Passed'], 7: ['Passed'], 8: ['Failed', 'BUG-003'], 9: ['Passed'], 10: ['Passed'], 11: ['Passed'], 12: ['Passed'], 13: ['Passed'], 14: ['Passed'], 15: ['Passed'], 16: ['Skipped'], 17: ['Passed'], 18: ['Passed'], 19: ['Failed', 'BUG-004'], 20: ['Passed'], 21: ['Passed'], 22: ['Blocked'], 25: ['Passed'], 26: ['Passed'], 32: ['Passed'], 34: ['Passed'] },
   },
   {
-    id: 'RUN-003', suiteId: 'SUITE-004', tester: 'Abhishek', build: '2.4.1', environment: 'Staging', sprint: 'Sprint 23', day: 8, hour: 14, durationMin: 40,
+    id: 'RUN-003', suiteId: 'SUITE-004', tester: 'Abhishek', build: '2.4.1', environment: 'Staging', sprint: 'Sprint 109', day: 8, hour: 14, durationMin: 40,
     outcomes: { 25: ['Passed'], 26: ['Passed'], 27: ['Failed', 'BUG-005'], 28: ['Passed'] },
   },
   {
-    id: 'RUN-005', suiteId: 'SUITE-001', tester: 'Vishal', build: '2.5.0-rc1', environment: 'Staging', sprint: 'Sprint 24', day: 4, hour: 9, durationMin: 60,
+    id: 'RUN-005', suiteId: 'SUITE-001', tester: 'Vishal', build: '2.5.0-rc1', environment: 'Staging', sprint: 'Sprint 110', day: 4, hour: 9, durationMin: 60,
     outcomes: { 1: ['Passed'], 6: ['Passed'], 10: ['Blocked', 'BUG-006'], 13: ['Passed'], 17: ['Passed'], 25: ['Passed'], 26: ['Passed'], 34: ['Passed'] },
   },
   {
-    id: 'RUN-006', suiteId: 'SUITE-002', tester: 'Vishal', build: '2.5.0-rc1', environment: 'Staging', sprint: 'Sprint 24', day: 2, hour: 9, durationMin: 380,
+    id: 'RUN-006', suiteId: 'SUITE-002', tester: 'Vishal', build: '2.5.0-rc1', environment: 'Staging', sprint: 'Sprint 110', day: 2, hour: 9, durationMin: 380,
     outcomes: { 1: ['Passed'], 2: ['Passed'], 3: ['Failed', 'BUG-007'], 4: ['Passed'], 5: ['Passed'], 6: ['Passed'], 7: ['Failed', 'BUG-008'], 8: ['Passed'], 9: ['Passed'], 10: ['Passed'], 11: ['Blocked'], 12: ['Passed'], 13: ['Passed'], 14: ['Passed'], 15: ['Passed'], 16: ['Passed'], 17: ['Passed'], 18: ['Passed'], 19: ['Passed'], 20: ['Passed'], 21: ['Passed'], 22: ['Skipped'], 25: ['Passed'], 26: ['Passed'], 32: ['Failed', 'BUG-009'], 34: ['Passed'] },
   },
   {
-    id: 'RUN-007', suiteId: 'SUITE-005', tester: 'Vishal', build: '2.5.0-rc1', environment: 'Staging', sprint: 'Sprint 24', day: 1, hour: 13, durationMin: 75,
+    id: 'RUN-007', suiteId: 'SUITE-005', tester: 'Vishal', build: '2.5.0-rc1', environment: 'Staging', sprint: 'Sprint 110', day: 1, hour: 13, durationMin: 75,
     outcomes: { 29: ['Passed'], 30: ['Failed', 'BUG-010'], 31: ['Passed'] },
   },
   {
-    id: 'RUN-008', suiteId: 'SUITE-001', tester: 'Abhishek', build: '2.5.0', environment: 'UAT', sprint: 'Sprint 24', day: 0, hour: 9, durationMin: 25, inProgress: true,
+    id: 'RUN-008', suiteId: 'SUITE-001', tester: 'Abhishek', build: '2.5.0', environment: 'UAT', sprint: 'Sprint 110', day: 0, hour: 9, durationMin: 25, inProgress: true,
     outcomes: { 1: ['Passed'], 6: ['Passed'], 10: ['Passed'], 13: ['Failed', 'BUG-011'], 17: ['Passed'] },
   },
 ]
@@ -358,7 +358,8 @@ export const seedSettings: AppSettings = {
   testers: ['Abhishek', 'Vishal'],
   builds: ['2.4.0', '2.4.1', '2.5.0-rc1', '2.5.0'],
   environments: ['QA', 'Staging', 'UAT', 'Production'],
-  sprints: ['Sprint 23', 'Sprint 24'],
+  sprints: ['Sprint 108', 'Sprint 109', 'Sprint 110', 'Sprint 111', 'Sprint 112'],
+  activeSprint: 'Sprint 110',
   modules: [...SAV_MODULES],
   categories: ['API', 'Backend', 'Device'],
   defaultBuild: '2.5.0',

@@ -134,6 +134,10 @@ export interface AppSettings {
   builds: string[]
   environments: string[]
   sprints: string[]
+  // Which sprint is currently in flight. Named explicitly rather than inferred
+  // from the end of `sprints`, because the board lists future sprints after the
+  // active one (Sprint 110 active, 111-115 future) so position means nothing.
+  activeSprint: string
   modules: string[]
   categories: string[]
   defaultBuild: string

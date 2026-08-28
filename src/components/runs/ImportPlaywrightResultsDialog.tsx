@@ -33,7 +33,7 @@ export function ImportPlaywrightResultsDialog({ open, onOpenChange }: ImportPlay
   const [tester, setTester] = useState('Playwright (CI)')
   const [build, setBuild] = useState(settings.defaultBuild)
   const [environment, setEnvironment] = useState(settings.defaultEnvironment)
-  const [sprint, setSprint] = useState(settings.sprints[settings.sprints.length - 1] ?? '')
+  const [sprint, setSprint] = useState(settings.activeSprint || settings.sprints[settings.sprints.length - 1] || '')
 
   const matchedKnown = useMemo(
     () => (parsed ? parsed.matched.filter((m) => testCases.some((c) => c.id === m.caseId)) : []),

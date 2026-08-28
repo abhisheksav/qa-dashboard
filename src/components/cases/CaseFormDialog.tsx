@@ -87,7 +87,7 @@ export function CaseFormDialog({ open, onOpenChange, editing, defaultModule }: C
       actualResult: '',
       status: 'Not Executed',
       comments: '',
-      sprint: settings.sprints[settings.sprints.length - 1] ?? '',
+      sprint: settings.activeSprint || settings.sprints[settings.sprints.length - 1] || '',
       suiteIds: [],
     },
   })
@@ -132,7 +132,7 @@ export function CaseFormDialog({ open, onOpenChange, editing, defaultModule }: C
         actualResult: '',
         status: 'Not Executed',
         comments: '',
-        sprint: settings.sprints[settings.sprints.length - 1] ?? '',
+        sprint: settings.activeSprint || settings.sprints[settings.sprints.length - 1] || '',
         suiteIds: [],
       })
     }
@@ -165,15 +165,20 @@ export function CaseFormDialog({ open, onOpenChange, editing, defaultModule }: C
     <>
       <div className="grid gap-2">
             <Label htmlFor="tc-title">Title</Label>
-            <Input id="tc-title" placeholder="What is being verified?" {...form.register('title', { required: true })} />
+            <Input
+              id="tc-title"
+              autoFocus
+              placeholder="What is being verified?"
+              {...form.register('title', { required: true })}
+            />
             {form.formState.errors.title && <p className="text-xs text-destructive">Title is required.</p>}
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3">
             <div className="grid gap-2">
               <Label>Module</Label>
               <Select value={form.watch('module')} onValueChange={(v) => form.setValue('module', v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger title={form.watch('module')}><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {moduleOptions.map((m) => (
                     <SelectItem key={m} value={m}>{m}</SelectItem>
@@ -230,7 +235,7 @@ export function CaseFormDialog({ open, onOpenChange, editing, defaultModule }: C
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3">
             <div className="grid gap-2">
               <Label>Category</Label>
               <Select value={form.watch('category')} onValueChange={(v) => form.setValue('category', v)}>

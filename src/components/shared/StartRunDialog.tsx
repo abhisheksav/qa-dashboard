@@ -22,14 +22,14 @@ export function StartRunDialog({ suiteId, onOpenChange }: StartRunDialogProps) {
   const [tester, setTester] = useState(settings.currentTester)
   const [build, setBuild] = useState(settings.defaultBuild)
   const [environment, setEnvironment] = useState(settings.defaultEnvironment)
-  const [sprint, setSprint] = useState(settings.sprints[settings.sprints.length - 1] ?? '')
+  const [sprint, setSprint] = useState(settings.activeSprint || settings.sprints[settings.sprints.length - 1] || '')
 
   useEffect(() => {
     if (suiteId) {
       setTester(settings.currentTester)
       setBuild(settings.defaultBuild)
       setEnvironment(settings.defaultEnvironment)
-      setSprint(settings.sprints[settings.sprints.length - 1] ?? '')
+      setSprint(settings.activeSprint || settings.sprints[settings.sprints.length - 1] || '')
     }
   }, [suiteId, settings])
 
