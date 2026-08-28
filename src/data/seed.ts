@@ -360,6 +360,11 @@ export const seedSettings: AppSettings = {
   environments: ['QA', 'Staging', 'UAT', 'Production'],
   sprints: ['Sprint 108', 'Sprint 109', 'Sprint 110', 'Sprint 111', 'Sprint 112', 'Sprint 113', 'Sprint 114', 'Sprint 115'],
   activeSprint: 'Sprint 110',
+  productOwners: {
+    'SAV Wealth': 'Satyankar Bajaj',
+    'SAV Gold': 'Kartik Nawal',
+    'SAV Card': 'Priyank Shah',
+  },
   modules: [...SAV_MODULES],
   categories: ['API', 'Backend', 'Device'],
   defaultBuild: '2.5.0',

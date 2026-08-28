@@ -287,6 +287,36 @@ export function SettingsPage() {
               </div>
               <Separator />
               <ListEditor title="Modules" items={settings.modules} {...listActions('modules')} />
+              <div className="grid gap-2">
+                <Label>Product Owners</Label>
+                <p className="text-xs text-muted-foreground -mt-1">
+                  Who signs off test cases for each module. Ownership is per module rather than per
+                  case, so changing an owner here updates every case in that module at once.
+                </p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {settings.modules.map((m) => (
+                    <div key={m} className="flex items-center gap-2">
+                      <span className="text-sm truncate w-40 shrink-0" title={m}>
+                        {m}
+                      </span>
+                      <Input
+                        aria-label={`Product Owner for ${m}`}
+                        placeholder="Unassigned"
+                        value={settings.productOwners?.[m] ?? ''}
+                        onChange={(e) => {
+                          const next = { ...(settings.productOwners ?? {}) }
+                          const name = e.target.value
+                          // Drop the key rather than storing an empty string, so
+                          // "unassigned" is one state instead of two.
+                          if (name.trim()) next[m] = name
+                          else delete next[m]
+                          updateSettings({ productOwners: next })
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
               <Separator />
               <ListEditor title="Categories" items={settings.categories} {...listActions('categories')} />
             </CardContent>

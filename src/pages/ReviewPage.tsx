@@ -36,16 +36,20 @@ function when(iso?: string) {
 }
 
 const ALL_SECTIONS = '__all_sections'
+const ALL_OWNERS = '__all_owners'
+const UNASSIGNED = '__unassigned'
 
 export function ReviewPage() {
   const { testCases, reviewCases } = useDataStore()
   const currentTester = useDataStore((s) => s.settings.currentTester)
+  const productOwners = useDataStore((s) => s.settings.productOwners)
   const user = useAuthStore((s) => s.user)
   const reviewedBy = user?.name ?? currentTester
 
   // Section is this app's subModule — the importer maps sheet columns named
   // "section"/"subsection"/"screen" onto it, and uploads are organised by it.
   const [section, setSection] = useState(ALL_SECTIONS)
+  const [owner, setOwner] = useState(ALL_OWNERS)
   const [selected, setSelected] = useState<string[]>([])
   const [viewing, setViewing] = useState<TestCase | null>(null)
   const [rejecting, setRejecting] = useState<string[]>([])
@@ -58,22 +62,51 @@ export function ReviewPage() {
     [testCases],
   )
 
+  // Each module has its own Product Owner, so a case's approver follows from
+  // its module rather than being stored on the case.
+  const ownerOf = useMemo(
+    () => (c: TestCase) => productOwners?.[c.module] ?? '',
+    [productOwners],
+  )
+
+  // Only owners that actually have cases, plus Unassigned when some module has
+  // no PO set — otherwise that work is invisible in this view.
+  const owners = useMemo(() => {
+    const names = new Set<string>()
+    let unassigned = false
+    for (const c of testCases) {
+      const po = productOwners?.[c.module]
+      if (po) names.add(po)
+      else unassigned = true
+    }
+    return { names: [...names].sort(), unassigned }
+  }, [testCases, productOwners])
+
   const inSection = useMemo(
     () => (c: TestCase) => section === ALL_SECTIONS || c.subModule === section,
     [section],
   )
 
+  const inOwner = useMemo(
+    () => (c: TestCase) => {
+      if (owner === ALL_OWNERS) return true
+      if (owner === UNASSIGNED) return !ownerOf(c)
+      return ownerOf(c) === owner
+    },
+    [owner, ownerOf],
+  )
+
   const pending = useMemo(
-    () => testCases.filter((c) => c.reviewStatus === 'Pending' && inSection(c)),
-    [testCases, inSection],
+    () => testCases.filter((c) => c.reviewStatus === 'Pending' && inSection(c) && inOwner(c)),
+    [testCases, inSection, inOwner],
   )
   const approved = useMemo(
-    () => testCases.filter((c) => c.reviewStatus === 'Approved' && c.reviewedAt && inSection(c)),
-    [testCases, inSection],
+    () => testCases.filter((c) => c.reviewStatus === 'Approved' && c.reviewedAt && inSection(c) && inOwner(c)),
+    [testCases, inSection, inOwner],
   )
   const rejected = useMemo(
-    () => testCases.filter((c) => c.reviewStatus === 'Rejected' && inSection(c)),
-    [testCases, inSection],
+    () => testCases.filter((c) => c.reviewStatus === 'Rejected' && inSection(c) && inOwner(c)),
+    [testCases, inSection, inOwner],
   )
 
   // One folder per upload, named from the sheet's banner/file name; newest first.
@@ -158,8 +191,37 @@ export function ReviewPage() {
             </div>
           )}
 
-          {section !== ALL_SECTIONS && (
-            <Button variant="ghost" size="sm" onClick={() => setSection(ALL_SECTIONS)}>
+          {(owners.names.length > 0 || owners.unassigned) && (
+            <div className="flex items-center gap-2">
+              <Label htmlFor="owner-filter" className="text-sm text-muted-foreground">
+                Product Owner
+              </Label>
+              <Select value={owner} onValueChange={setOwner}>
+                <SelectTrigger id="owner-filter" className="w-52">
+                  <SelectValue placeholder="All Owners" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_OWNERS}>All Product Owners</SelectItem>
+                  {owners.names.map((name) => (
+                    <SelectItem key={name} value={name}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                  {owners.unassigned && <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {(section !== ALL_SECTIONS || owner !== ALL_OWNERS) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSection(ALL_SECTIONS)
+                setOwner(ALL_OWNERS)
+              }}
+            >
               <X /> Clear
             </Button>
           )}
@@ -232,6 +294,7 @@ export function ReviewPage() {
                             <TableHead>ID</TableHead>
                             <TableHead>Title</TableHead>
                             <TableHead>Module</TableHead>
+                            <TableHead>Product Owner</TableHead>
                             <TableHead>Priority</TableHead>
                             <TableHead>Uploaded By</TableHead>
                             <TableHead>Uploaded</TableHead>
@@ -258,6 +321,11 @@ export function ReviewPage() {
                                 <Badge variant="secondary">{c.module}</Badge>
                                 {c.subModule && (
                                   <span className="block text-[11px] text-muted-foreground mt-0.5">{c.subModule}</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                {ownerOf(c) || (
+                                  <span className="text-muted-foreground">Unassigned</span>
                                 )}
                               </TableCell>
                               <TableCell><PriorityBadge priority={c.priority} /></TableCell>

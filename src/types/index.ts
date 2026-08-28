@@ -138,6 +138,10 @@ export interface AppSettings {
   // from the end of `sprints`, because the board lists future sprints after the
   // active one (Sprint 110 active, 111-115 future) so position means nothing.
   activeSprint: string
+  // Product Owner who signs off test cases, keyed by module — each SAV module
+  // has its own PO. Ownership lives here rather than on the case so it stays
+  // correct when a PO changes, and so an uploaded case needs no extra column.
+  productOwners: Record<string, string>
   modules: string[]
   categories: string[]
   defaultBuild: string

@@ -91,6 +91,14 @@ interface DataState {
 
 // Sprint names follow the SV1 Jira board. Kept beside the migration that
 // introduces them so the two cannot drift apart.
+// Known Product Owners per SAV module. Kept beside the migration that
+// introduces them so both stay in step with the seed.
+const DEFAULT_PRODUCT_OWNERS: Record<string, string> = {
+  'SAV Wealth': 'Satyankar Bajaj',
+  'SAV Gold': 'Kartik Nawal',
+  'SAV Card': 'Priyank Shah',
+}
+
 const SPRINT_LIST = ['Sprint 108', 'Sprint 109', 'Sprint 110', 'Sprint 111', 'Sprint 112', 'Sprint 113', 'Sprint 114', 'Sprint 115']
 
 const now = () => new Date().toISOString()
@@ -405,7 +413,7 @@ export const useDataStore = create<DataState>()(
     {
       name: 'qa-dashboard-data',
       storage: createJSONStorage(() => createDriver()),
-      version: 8,
+      version: 9,
       migrate: (persisted, version) => {
         const state = persisted as DataState
         if (version < 2 && state.settings) {
@@ -476,6 +484,15 @@ export const useDataStore = create<DataState>()(
           }))
           if (state.settings && !state.settings.categories) {
             state.settings = { ...state.settings, categories: ['API', 'Backend', 'Device'] }
+          }
+        }
+        if (version < 9 && state.settings) {
+          // Product Owner per module is new. Seed the known SAV owners without
+          // clobbering anything already set; modules with no owner yet simply
+          // have no entry and are shown as unassigned.
+          state.settings = {
+            ...state.settings,
+            productOwners: { ...DEFAULT_PRODUCT_OWNERS, ...(state.settings.productOwners ?? {}) },
           }
         }
         if (version < 8 && state.settings) {
