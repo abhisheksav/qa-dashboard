@@ -37,7 +37,7 @@ function when(iso?: string) {
 
 const ALL_SECTIONS = '__all_sections'
 const ALL_OWNERS = '__all_owners'
-const UNASSIGNED = '__unassigned'
+const OPEN_TO_ANYONE = '__open_to_anyone'
 
 export function ReviewPage() {
   const { testCases, reviewCases } = useDataStore()
@@ -69,17 +69,18 @@ export function ReviewPage() {
     [productOwners],
   )
 
-  // Only owners that actually have cases, plus Unassigned when some module has
-  // no PO set — otherwise that work is invisible in this view.
+  // Only owners that actually have cases, plus an open bucket when some module
+  // has no PO — a module without an owner is approvable by anyone, so that is a
+  // real state to filter on rather than missing data.
   const owners = useMemo(() => {
     const names = new Set<string>()
-    let unassigned = false
+    let openToAnyone = false
     for (const c of testCases) {
       const po = productOwners?.[c.module]
       if (po) names.add(po)
-      else unassigned = true
+      else openToAnyone = true
     }
-    return { names: [...names].sort(), unassigned }
+    return { names: [...names].sort(), openToAnyone }
   }, [testCases, productOwners])
 
   const inSection = useMemo(
@@ -90,7 +91,7 @@ export function ReviewPage() {
   const inOwner = useMemo(
     () => (c: TestCase) => {
       if (owner === ALL_OWNERS) return true
-      if (owner === UNASSIGNED) return !ownerOf(c)
+      if (owner === OPEN_TO_ANYONE) return !ownerOf(c)
       return ownerOf(c) === owner
     },
     [owner, ownerOf],
@@ -191,7 +192,7 @@ export function ReviewPage() {
             </div>
           )}
 
-          {(owners.names.length > 0 || owners.unassigned) && (
+          {(owners.names.length > 0 || owners.openToAnyone) && (
             <div className="flex items-center gap-2">
               <Label htmlFor="owner-filter" className="text-sm text-muted-foreground">
                 Product Owner
@@ -207,7 +208,7 @@ export function ReviewPage() {
                       {name}
                     </SelectItem>
                   ))}
-                  {owners.unassigned && <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>}
+                  {owners.openToAnyone && <SelectItem value={OPEN_TO_ANYONE}>Anyone can approve</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
@@ -325,7 +326,7 @@ export function ReviewPage() {
                               </TableCell>
                               <TableCell className="whitespace-nowrap">
                                 {ownerOf(c) || (
-                                  <span className="text-muted-foreground">Unassigned</span>
+                                  <span className="text-muted-foreground">Anyone</span>
                                 )}
                               </TableCell>
                               <TableCell><PriorityBadge priority={c.priority} /></TableCell>

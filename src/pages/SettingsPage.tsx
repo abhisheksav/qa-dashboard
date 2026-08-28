@@ -291,7 +291,8 @@ export function SettingsPage() {
                 <Label>Product Owners</Label>
                 <p className="text-xs text-muted-foreground -mt-1">
                   Who signs off test cases for each module. Ownership is per module rather than per
-                  case, so changing an owner here updates every case in that module at once.
+                  case, so changing an owner here updates every case in that module at once. Leave a
+                  module blank and its cases can be approved by anyone.
                 </p>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {settings.modules.map((m) => (
@@ -301,13 +302,13 @@ export function SettingsPage() {
                       </span>
                       <Input
                         aria-label={`Product Owner for ${m}`}
-                        placeholder="Unassigned"
+                        placeholder="Anyone can approve"
                         value={settings.productOwners?.[m] ?? ''}
                         onChange={(e) => {
                           const next = { ...(settings.productOwners ?? {}) }
                           const name = e.target.value
                           // Drop the key rather than storing an empty string, so
-                          // "unassigned" is one state instead of two.
+                          // "anyone can approve" is one state instead of two.
                           if (name.trim()) next[m] = name
                           else delete next[m]
                           updateSettings({ productOwners: next })
