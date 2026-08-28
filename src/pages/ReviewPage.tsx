@@ -10,6 +10,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -28,23 +35,46 @@ function when(iso?: string) {
   return iso ? format(new Date(iso), 'd MMM yyyy, HH:mm') : '—'
 }
 
+const ALL_SECTIONS = '__all_sections'
+
 export function ReviewPage() {
   const { testCases, reviewCases } = useDataStore()
   const currentTester = useDataStore((s) => s.settings.currentTester)
   const user = useAuthStore((s) => s.user)
   const reviewedBy = user?.name ?? currentTester
 
+  // Section is this app's subModule — the importer maps sheet columns named
+  // "section"/"subsection"/"screen" onto it, and uploads are organised by it.
+  const [section, setSection] = useState(ALL_SECTIONS)
   const [selected, setSelected] = useState<string[]>([])
   const [viewing, setViewing] = useState<TestCase | null>(null)
   const [rejecting, setRejecting] = useState<string[]>([])
   const [rejectComment, setRejectComment] = useState('')
 
-  const pending = useMemo(() => testCases.filter((c) => c.reviewStatus === 'Pending'), [testCases])
-  const approved = useMemo(
-    () => testCases.filter((c) => c.reviewStatus === 'Approved' && c.reviewedAt),
+  // Every section present across the library, so the dropdown does not empty
+  // out as cases move between tabs.
+  const sections = useMemo(
+    () => [...new Set(testCases.map((c) => c.subModule).filter((x): x is string => !!x))].sort(),
     [testCases],
   )
-  const rejected = useMemo(() => testCases.filter((c) => c.reviewStatus === 'Rejected'), [testCases])
+
+  const inSection = useMemo(
+    () => (c: TestCase) => section === ALL_SECTIONS || c.subModule === section,
+    [section],
+  )
+
+  const pending = useMemo(
+    () => testCases.filter((c) => c.reviewStatus === 'Pending' && inSection(c)),
+    [testCases, inSection],
+  )
+  const approved = useMemo(
+    () => testCases.filter((c) => c.reviewStatus === 'Approved' && c.reviewedAt && inSection(c)),
+    [testCases, inSection],
+  )
+  const rejected = useMemo(
+    () => testCases.filter((c) => c.reviewStatus === 'Rejected' && inSection(c)),
+    [testCases, inSection],
+  )
 
   // One folder per upload, named from the sheet's banner/file name; newest first.
   const pendingGroups = useMemo(() => {
@@ -100,11 +130,40 @@ export function ReviewPage() {
       </div>
 
       <Tabs defaultValue="pending">
-        <TabsList>
-          <TabsTrigger value="pending">Pending ({pending.length})</TabsTrigger>
-          <TabsTrigger value="approved">Approved ({approved.length})</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected ({rejected.length})</TabsTrigger>
-        </TabsList>
+        <div className="flex flex-wrap items-center gap-3">
+          <TabsList>
+            <TabsTrigger value="pending">Pending ({pending.length})</TabsTrigger>
+            <TabsTrigger value="approved">Approved ({approved.length})</TabsTrigger>
+            <TabsTrigger value="rejected">Rejected ({rejected.length})</TabsTrigger>
+          </TabsList>
+
+          {sections.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Label htmlFor="section-filter" className="text-sm text-muted-foreground">
+                Section
+              </Label>
+              <Select value={section} onValueChange={setSection}>
+                <SelectTrigger id="section-filter" className="w-56">
+                  <SelectValue placeholder="All Sections" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_SECTIONS}>All Sections</SelectItem>
+                  {sections.map((sec) => (
+                    <SelectItem key={sec} value={sec}>
+                      {sec}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {section !== ALL_SECTIONS && (
+            <Button variant="ghost" size="sm" onClick={() => setSection(ALL_SECTIONS)}>
+              <X /> Clear
+            </Button>
+          )}
+        </div>
 
         <TabsContent value="pending">
           <Card className="p-3">
