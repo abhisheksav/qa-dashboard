@@ -12,20 +12,38 @@ npm run build      # production build → dist/
 npm test           # route + interaction smoke tests (vitest + jsdom)
 ```
 
-The app ships with a realistic demo dataset (34 test cases, 8 suites, 8 runs, 11 bugs). All data
-persists in browser localStorage; reset it anytime from **Settings → Data → Reset workspace**.
+The app ships with a realistic demo dataset (34 test cases, 8 suites, 8 runs, 11 bugs). By default
+all data persists in browser localStorage; reset it anytime from **Settings → Data → Reset workspace**.
+
+### Shared backend (optional)
+
+To store data centrally instead of per-browser — Postgres 16 behind a small API, so every signed-in
+tester sees the same workspace — see [server/README.md](server/README.md). Quick version:
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+docker compose exec api node scripts/create-user.js you@example.com "a-real-password" "Your Name"
+```
+
+Then set `VITE_API_URL` in `.env` (already done by the copy above) and `npm run dev`. Leave it unset
+to keep running fully local.
 
 ## Sign in
 
-QA access is gated behind a login screen:
+**With no backend configured** (`VITE_API_URL` unset), a dev-only demo login applies:
 
 - **Email**: `abhishek@sav.money`
 - **Password**: `Sav@12345`
 
+This credential only works under `npm run dev` — it's guarded by `import.meta.env.DEV`, which Vite
+strips from a production build, so it does not exist in anything deployed.
+
+**With the backend configured**, sign-in is real: accounts are created with
+`server/scripts/create-user.js`, there is no public sign-up, and `src/store/useAuthStore.ts` calls
+the API instead of checking the hardcoded pair above.
+
 The session persists across reloads; sign out from the sidebar footer (or the header on mobile).
-This is client-side demo gating only — the credentials live in the bundle, so anyone with the built
-files can read them. For real security, swap `src/store/useAuthStore.ts` for a server-backed auth
-provider behind the same `login`/`logout` interface; the route guard and UI need no changes.
 
 ## Features
 
@@ -66,7 +84,9 @@ src/
   types/          Domain model (TestCase, TestSuite, TestRun, Bug, …)
   data/seed.ts    Demo dataset — internally consistent (case status derives from latest run)
   services/
-    persistence.ts    StateStorage driver abstraction (local now, remote later)
+    persistence.ts    StateStorage driver abstraction (localStorage)
+    apiClient.ts      HTTP client for the standalone backend (server/)
+    remoteSync.ts     Hydrate + diff-push sync against the API, when configured
   store/          Zustand stores: domain data (persisted) + theme
   lib/            stats selectors, import/export, utils
   components/
@@ -78,9 +98,11 @@ src/
   pages/          One file per route
 ```
 
-**Backend**: the app is fully local — all data persists to browser localStorage. Persistence flows
-through the `StateStorage` driver in `services/persistence.ts`, so a remote driver can swap in
-without touching stores or UI if a backend is added later.
+**Backend**: fully local by default (localStorage). An optional standalone backend — Postgres 16 +
+a small Express API, in `server/` — stores the same data centrally instead; see
+[server/README.md](server/README.md). The Zustand store stays synchronous either way: `remoteSync.ts`
+hydrates on sign-in and pushes only changed rows on every store change, without any store or page
+needing to become async.
 
 **Future integrations**: Jira, TestRail, Zephyr, Playwright, GitHub Actions, Jenkins, BrowserStack,
 and Slack each have a config surface in **Settings → Integrations**; credentials are stored per

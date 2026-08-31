@@ -1,11 +1,21 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { api, isApiConfigured, setToken, clearToken } from '@/services/apiClient'
 
-// Demo credential check for QA access. This is client-side gating only — the
-// credentials ship in the bundle. For real security, swap this store for a
-// server-backed auth provider behind the same login/logout interface.
-const VALID_EMAIL = 'abhishek@sav.money'
-const VALID_PASSWORD = 'Sav@12345'
+// Two modes, picked by whether VITE_API_URL is set:
+//
+//   configured  → real login against the standalone Postgres API (server/).
+//                 Accounts are created on the server with
+//                 scripts/create-user.js — there is no public sign-up.
+//   unset       → the original local demo credential, so `npm run dev` and
+//                 the test suite still work with no backend running.
+//
+// The demo branch is guarded by `import.meta.env.DEV`, which Vite statically
+// replaces with `false` in a production build — the branch and the
+// credential constants below are then dead code and get dropped from the
+// bundle. A deployed build with no API configured cannot be signed into.
+const DEMO_EMAIL = 'abhishek@sav.money'
+const DEMO_PASSWORD = 'Sav@12345'
 
 export interface AuthUser {
   email: string
@@ -14,7 +24,8 @@ export interface AuthUser {
 
 interface AuthState {
   user: AuthUser | null
-  login: (email: string, password: string) => boolean
+  login: (email: string, password: string) => Promise<boolean>
+  loginError: string | null
   logout: () => void
 }
 
@@ -22,15 +33,40 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      login: (email, password) => {
-        const ok = email.trim().toLowerCase() === VALID_EMAIL && password === VALID_PASSWORD
-        if (ok) {
-          set({ user: { email: VALID_EMAIL, name: 'Abhishek' } })
+      loginError: null,
+
+      login: async (email, password) => {
+        set({ loginError: null })
+
+        if (isApiConfigured()) {
+          try {
+            const { token, user } = await api.login(email, password)
+            setToken(token)
+            set({ user })
+            return true
+          } catch (e: unknown) {
+            set({ loginError: e instanceof Error ? e.message : 'Invalid email or password.' })
+            return false
+          }
         }
-        return ok
+
+        if (
+          import.meta.env.DEV &&
+          email.trim().toLowerCase() === DEMO_EMAIL &&
+          password === DEMO_PASSWORD
+        ) {
+          set({ user: { email: DEMO_EMAIL, name: 'Abhishek' } })
+          return true
+        }
+        set({ loginError: 'Invalid email or password.' })
+        return false
       },
-      logout: () => set({ user: null }),
+
+      logout: () => {
+        clearToken()
+        set({ user: null })
+      },
     }),
-    { name: 'qa-dashboard-auth' },
+    { name: 'qa-dashboard-auth', partialize: (s) => ({ user: s.user }) },
   ),
 )

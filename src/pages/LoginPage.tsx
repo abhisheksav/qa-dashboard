@@ -15,7 +15,7 @@ interface LoginValues {
 }
 
 export function LoginPage() {
-  const { user, login } = useAuthStore()
+  const { user, login, loginError } = useAuthStore()
   const navigate = useNavigate()
   const location = useLocation()
   const [showPassword, setShowPassword] = useState(false)
@@ -27,8 +27,9 @@ export function LoginPage() {
     return <Navigate to="/" replace />
   }
 
-  function onSubmit(values: LoginValues) {
-    if (login(values.email, values.password)) {
+  async function onSubmit(values: LoginValues) {
+    const ok = await login(values.email, values.password)
+    if (ok) {
       const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname
       navigate(from ?? '/', { replace: true })
     } else {
@@ -86,12 +87,12 @@ export function LoginPage() {
             {failed && (
               <div className="flex items-center gap-2 rounded-lg border border-status-critical/30 bg-status-critical/10 px-3 py-2 text-sm text-status-critical">
                 <ShieldAlert className="h-4 w-4 shrink-0" />
-                Invalid email or password.
+                {loginError ?? 'Invalid email or password.'}
               </div>
             )}
 
-            <Button type="submit" className="w-full mt-1">
-              <LogIn /> Sign In
+            <Button type="submit" className="w-full mt-1" disabled={form.formState.isSubmitting}>
+              <LogIn /> {form.formState.isSubmitting ? 'Signing in…' : 'Sign In'}
             </Button>
           </form>
         </Card>

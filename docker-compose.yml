@@ -1,0 +1,51 @@
+# Runs the whole standalone backend: Postgres 16 + the API in front of it.
+#
+#   docker compose up -d          start both, schema applies automatically
+#                                  on the *first* run (see the postgres
+#                                  volume note below)
+#   docker compose exec api npm run create-user -- you@example.com "a-real-password" "Your Name"
+#   docker compose down           stop; add -v to also delete the database
+#
+# The dashboard itself (npm run dev / npm run build) is not part of this
+# file — it's a separate static frontend that talks to the api service over
+# HTTP. Point it at http://localhost:4000 via VITE_API_URL (see .env.example
+# at the repo root).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: qa_dashboard
+      POSTGRES_PASSWORD: qa_dashboard
+      POSTGRES_DB: qa_dashboard
+    ports:
+      - '5432:5432'
+    volumes:
+      - qa_dashboard_pgdata:/var/lib/postgresql/data
+      # Postgres only runs files in this directory on the very first start,
+      # when the data directory is empty — not on every container restart.
+      - ./server/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U qa_dashboard']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./server
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://qa_dashboard:qa_dashboard@postgres:5432/qa_dashboard
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in a .env file next to this compose file}
+      JWT_EXPIRY: 7d
+      PORT: 4000
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+    ports:
+      - '4000:4000'
+
+volumes:
+  qa_dashboard_pgdata:

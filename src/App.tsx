@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ReactNode } from 'react'
+import { lazy, Suspense, useEffect, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/toaster'
@@ -16,6 +16,7 @@ import { BugsPage } from '@/pages/BugsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { useAuthStore } from '@/store/useAuthStore'
+import { startWorkspaceSync, stopWorkspaceSync } from '@/services/remoteSync'
 import '@/store/useThemeStore'
 
 const ReportsPage = lazy(() => import('@/pages/ReportsPage').then((m) => ({ default: m.ReportsPage })))
@@ -27,7 +28,16 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+function useWorkspaceBootstrap() {
+  const user = useAuthStore((s) => s.user)
+  useEffect(() => {
+    if (user) void startWorkspaceSync()
+    else stopWorkspaceSync()
+  }, [user])
+}
+
 export default function App() {
+  useWorkspaceBootstrap()
   return (
     <TooltipProvider delayDuration={200}>
       <BrowserRouter>

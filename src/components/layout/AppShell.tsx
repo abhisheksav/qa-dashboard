@@ -27,9 +27,11 @@ import { Button } from '@/components/ui/button'
 import { SavLogo } from '@/components/brand/SavLogo'
 import { GlobalSearch } from './GlobalSearch'
 import { ThemeToggle } from './ThemeToggle'
+import { SyncStatus } from './SyncStatus'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useDataStore } from '@/store/useDataStore'
 import { useAuthStore } from '@/store/useAuthStore'
+import { flushWorkspaceSync } from '@/services/remoteSync'
 
 const nav = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -63,7 +65,13 @@ export function AppShell() {
   const activeModule = location.pathname === '/cases' ? searchParams.get('module') : null
   const tester = useDataStore((s) => s.settings.currentTester)
   const user = useAuthStore((s) => s.user)
-  const logout = useAuthStore((s) => s.logout)
+  const signOut = useAuthStore((s) => s.logout)
+  // Push any debounced edits before tearing down the session, so the last
+  // action before signing out is not lost.
+  const logout = async () => {
+    await flushWorkspaceSync()
+    signOut()
+  }
   const displayName = user?.name ?? tester
   const initials = displayName
     .split(' ')
@@ -185,6 +193,7 @@ export function AppShell() {
             </Button>
             <GlobalSearch />
             <div className="ml-auto flex items-center gap-1">
+              <SyncStatus />
               <ThemeToggle />
               <Tooltip>
                 <TooltipTrigger asChild>
